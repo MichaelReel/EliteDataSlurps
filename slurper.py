@@ -44,11 +44,9 @@ def main():
                 # Handle commodity v3
                 if json['$schemaRef'] == 'https://eddn.edcd.io/schemas/commodity/3' :
 
-                    # # call dumps() to ensure double quotes in output
-                    # print(simplejson.dumps(json))
                     commodity_v3 = commodity_v3_schema.load(json)
-                    print(commodity_v3)
                     adapter.update(commodity_v3)
+                    print(f"{commodity_v3.header.uploader_id}:{commodity_v3.message.system_name}/{commodity_v3.message.station_name}")
                     sys.stdout.flush()
 
                 
