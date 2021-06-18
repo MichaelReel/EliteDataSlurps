@@ -1,6 +1,8 @@
-from marshmallow import Schema, fields, EXCLUDE
+from marshmallow import Schema, fields, EXCLUDE, post_load
 from marshmallow.exceptions import ValidationError
 from typing import Any, Mapping, Optional
+
+from eddn.model import Commodity, CommodityV3, Economy, Header, Message
 
 
 class BaseSchema(Schema):
@@ -14,13 +16,19 @@ class HeaderSchema(BaseSchema):
     software_version = fields.String(required=True, data_key="softwareVersion")
     gateway_timestamp = fields.DateTime(allow_none=True, data_key="gatewayTimestamp")
 
+    @post_load
+    def to_domain(self, data, **kwargs) -> Header:
+        return Header(**data)
+
 
 class Bracket(fields.Field):
     """
     Field to accept bracket 0, 1, 2, 3 or "" info
     """
     def _deserialize(self, value: Any, attr: Optional[str], data: Optional[Mapping[str, Any]], **kwargs):
-        if isinstance(value, str) or isinstance(value, int):
+        if isinstance(value, int):
+            value = str(value)
+        if isinstance(value, str):
             return super()._deserialize(value, attr, data, **kwargs)
         else:
             raise ValidationError("Bracket should be int or \"\"")
@@ -37,9 +45,19 @@ class CommoditySchema(BaseSchema):
     demand_bracket = Bracket(required=True, data_key="demandBracket")
     status_flags = fields.List(fields.String(required=True), allow_none=True, data_key="statusFlags")
 
+    @post_load
+    def to_domain(self, data, **kwargs) -> Commodity:
+        return Commodity(**data)
+
+
 class EconomySchema(BaseSchema):
     name = fields.String(required=True)
     proportion = fields.Decimal(required=True)
+
+    @post_load
+    def to_domain(self, data, **kwargs) -> Economy:
+        return Economy(**data)
+
 
 class MessageSchema(BaseSchema):
     system_name = fields.String(required=True, data_key="systemName")
@@ -52,9 +70,17 @@ class MessageSchema(BaseSchema):
     horizons = fields.Bool(allow_none=True)
     odyssey = fields.Bool(allow_none=True)
 
+    @post_load
+    def to_domain(self, data, **kwargs) -> Message:
+        return Message(**data)
+
 
 class CommodityV3Schema(BaseSchema):
     header = fields.Nested(HeaderSchema, required=True)
     message = fields.Nested(MessageSchema, required=True)
+
+    @post_load
+    def to_domain(self, data, **kwargs) -> CommodityV3:
+        return CommodityV3(**data)
 
 
