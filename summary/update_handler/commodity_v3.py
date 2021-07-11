@@ -12,11 +12,13 @@ class UpdateHandler:
     __max_best = 5
     __min_stock = 500
     __min_demand = 1
+    __autosave_wait = 100
 
     def __init__(self, target: StockSummary) -> None:
         self.stock_summary = target
         self.commodity_index = {}
         self._create_commodity_index()
+        self.save_counter = self.__autosave_wait
 
     def _create_commodity_index(self) -> None:
         """
@@ -35,9 +37,17 @@ class UpdateHandler:
             self.commodity_index[name] = stock_commodity
             return stock_commodity
 
-    def update(self, commodity_v3: EddnCommodityV3) -> None:
+    def update(self, commodity_v3: EddnCommodityV3) -> bool:
+        """Updates the summary and returns true if it's time to save"""
         for eddn_commodity in commodity_v3.message.commodities:
             self._update_commodity_summary(eddn_commodity, commodity_v3.message)
+
+        if self.save_counter <= 0:
+            self.save_counter = self.__autosave_wait
+            return True
+        else:
+            self.save_counter -= 1
+            return False
 
     def _update_commodity_summary(
         self, eddn_commodity: EddnCommodity, message: Message

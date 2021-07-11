@@ -1,3 +1,4 @@
+from eddn.commodity_v3.model import CommodityV3
 from eddn.journal_v1.schema import JournalV1Schema
 from eddn import journal_v1
 import zlib
@@ -15,7 +16,9 @@ from summary.update_handler.commodity_v3 import UpdateHandler
 __relayEDDN = "tcp://eddn.edcd.io:9500"
 __timeoutEDDN = 600000
 __continue = True
-__autosave_wait = 100
+
+commodity_v3_schema = CommodityV3Schema()
+journal_v1_schema = JournalV1Schema()
 
 
 def main():
@@ -24,12 +27,9 @@ def main():
 
     subscriber.setsockopt(zmq.SUBSCRIBE, b"")
     subscriber.setsockopt(zmq.RCVTIMEO, __timeoutEDDN)
-    commodity_v3_schema = CommodityV3Schema()
-    journal_v1_schema = JournalV1Schema()
 
     summary = storage.load()
     adapter = UpdateHandler(summary)
-    save_counter = __autosave_wait
 
     # Dev extension analysis
     received_schemas = {}
@@ -53,18 +53,7 @@ def main():
                 schema_name = json["$schemaRef"]
                 if schema_name == "https://eddn.edcd.io/schemas/commodity/3":
 
-                    commodity_v3 = commodity_v3_schema.load(json)
-                    adapter.update(commodity_v3)
-                    print(
-                        f"{commodity_v3.header.uploader_id}:{commodity_v3.message.system_name}/{commodity_v3.message.station_name}"
-                    )
-                    sys.stdout.flush()
-
-                    if save_counter <= 0:
-                        storage.save(summary)
-                        save_counter = __autosave_wait
-
-                    save_counter -= 1
+                    handle_commodity_v3(adapter, json=json)
 
                 if schema_name == "https://eddn.edcd.io/schemas/journal/1":
 
@@ -102,6 +91,22 @@ def main():
     storage.save(summary)
     print(received_schemas)
     print(journal_events)
+
+
+def handle_commodity_v3(
+    update_handler: UpdateHandler, json: dict
+) -> None:
+    commodity_v3 = commodity_v3_schema.load(json)
+    uploader_id = commodity_v3.header.uploader_id
+    system_name = commodity_v3.message.system_name
+    station_name = commodity_v3.message.station_name
+    time_to_save = update_handler.update(commodity_v3)
+
+    print(f"{uploader_id}:{system_name}/{station_name}")
+    sys.stdout.flush()
+
+    if time_to_save:
+        storage.save(update_handler.summary)
 
 
 def signal_handler(sig, frame):
