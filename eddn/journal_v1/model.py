@@ -27,6 +27,6 @@ class Message:
 
 
 @dataclass
-class JournalV1():
+class JournalV1:
     header: Header
     message: Message

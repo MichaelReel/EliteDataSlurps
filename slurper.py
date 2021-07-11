@@ -21,7 +21,7 @@ __autosave_wait = 100
 def main():
     context = zmq.Context()
     subscriber = context.socket(zmq.SUB)
-    
+
     subscriber.setsockopt(zmq.SUBSCRIBE, b"")
     subscriber.setsockopt(zmq.RCVTIMEO, __timeoutEDDN)
     commodity_v3_schema = CommodityV3Schema()
@@ -38,24 +38,26 @@ def main():
     while __continue:
         try:
             subscriber.connect(__relayEDDN)
-            
+
             while __continue:
-                message   = subscriber.recv()
-                
+                message = subscriber.recv()
+
                 if message == False:
                     subscriber.disconnect(__relayEDDN)
                     break
-                
+
                 message = zlib.decompress(message)
                 json = simplejson.loads(message)
-                
+
                 # Handle commodity v3
                 schema_name = json["$schemaRef"]
-                if schema_name == "https://eddn.edcd.io/schemas/commodity/3" :
+                if schema_name == "https://eddn.edcd.io/schemas/commodity/3":
 
                     commodity_v3 = commodity_v3_schema.load(json)
                     adapter.update(commodity_v3)
-                    print(f"{commodity_v3.header.uploader_id}:{commodity_v3.message.system_name}/{commodity_v3.message.station_name}")
+                    print(
+                        f"{commodity_v3.header.uploader_id}:{commodity_v3.message.system_name}/{commodity_v3.message.station_name}"
+                    )
                     sys.stdout.flush()
 
                     if save_counter <= 0:
@@ -63,8 +65,7 @@ def main():
                         save_counter = __autosave_wait
 
                     save_counter -= 1
-                
-                
+
                 if schema_name == "https://eddn.edcd.io/schemas/journal/1":
 
                     journal_v1 = journal_v1_schema.load(json)
@@ -81,9 +82,10 @@ def main():
                         system = journal_v1.message.system_name
                         station = journal_v1.message.station_name
                         station_type = journal_v1.message.station_type
-                        print(f"    {uploader}:{system}/{station}({station_type}) : {event}")
+                        print(
+                            f"    {uploader}:{system}/{station}({station_type}) : {event}"
+                        )
                         # print(json)
-
 
                 # Dev analysis
                 if schema_name in received_schemas:
@@ -92,11 +94,11 @@ def main():
                     received_schemas[schema_name] = 1
 
         except zmq.ZMQError as e:
-            print ("ZMQSocketException: " + str(e))
+            print("ZMQSocketException: " + str(e))
             sys.stdout.flush()
             subscriber.disconnect(__relayEDDN)
             time.sleep(5)
-    
+
     storage.save(summary)
     print(received_schemas)
     print(journal_events)

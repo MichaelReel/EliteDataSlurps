@@ -31,7 +31,7 @@ class Economy:
 
 
 @dataclass
-class Message():
+class Message:
     system_name: str
     station_name: str
     market_id: int
@@ -45,6 +45,6 @@ class Message():
 
 
 @dataclass
-class CommodityV3():
+class CommodityV3:
     header: Header
     message: Message

@@ -25,7 +25,7 @@ class MessageSchema(BaseSchema):
     system_name = fields.String(required=True, data_key="StarSystem")
     system_address = fields.Integer(required=True, data_key="SystemAddress")
     timestamp = fields.DateTime(required=True)
-    
+
     dist_from_star_ls = fields.Float(allow_none=True, data_key="DistFromStarLS")
     market_id = fields.Integer(allow_none=True, data_key="MarketID")
     station_allegiance = fields.String(allow_none=True, data_key="StationAllegiance")

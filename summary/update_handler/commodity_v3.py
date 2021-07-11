@@ -2,9 +2,9 @@ from bisect import insort_left, insort_right
 from typing import Optional
 from summary.model import Commodity as StockCommodity, CostSnapshot, StockSummary
 from eddn.commodity_v3.model import (
-    Commodity as EddnCommodity, 
+    Commodity as EddnCommodity,
     CommodityV3 as EddnCommodityV3,
-    Message
+    Message,
 )
 
 
@@ -18,7 +18,6 @@ class UpdateHandler:
         self.commodity_index = {}
         self._create_commodity_index()
 
-
     def _create_commodity_index(self) -> None:
         """
         The commodity_index is only used for lookup while the stock_summary
@@ -26,7 +25,6 @@ class UpdateHandler:
         """
         for commodity in self.stock_summary.commodities:
             self.commodity_index[commodity.name] = commodity
-
 
     def _get_stock_commodity(self, name: str) -> Optional[StockCommodity]:
         if name in self.commodity_index:
@@ -37,13 +35,13 @@ class UpdateHandler:
             self.commodity_index[name] = stock_commodity
             return stock_commodity
 
-    
     def update(self, commodity_v3: EddnCommodityV3) -> None:
         for eddn_commodity in commodity_v3.message.commodities:
             self._update_commodity_summary(eddn_commodity, commodity_v3.message)
 
-
-    def _update_commodity_summary(self, eddn_commodity: EddnCommodity, message: Message):
+    def _update_commodity_summary(
+        self, eddn_commodity: EddnCommodity, message: Message
+    ):
         stock_commodity: StockCommodity = self._get_stock_commodity(eddn_commodity.name)
         cost_snapshot = CostSnapshot(
             system_name=message.system_name,
@@ -52,26 +50,25 @@ class UpdateHandler:
             buy_price=eddn_commodity.buy_price,
             stock=eddn_commodity.stock,
             sell_price=eddn_commodity.sell_price,
-            demand=eddn_commodity.demand
+            demand=eddn_commodity.demand,
         )
         self._insert_buy(stock_commodity, cost_snapshot)
         self._insert_sell(stock_commodity, cost_snapshot)
-    
 
     def _insert_buy(self, stock_commodity: StockCommodity, cost_snapshot: CostSnapshot):
         if cost_snapshot.buy_price == 0:
             return
-        
+
         # Check supply, ignore if too low
         if cost_snapshot.stock < self.__min_stock:
             return
 
         # Remove any existing results
-        for i in range(len(stock_commodity.best_buys)-1, -1, -1):
+        for i in range(len(stock_commodity.best_buys) - 1, -1, -1):
             buy = stock_commodity.best_buys[i]
             if (
-                buy.system_name == cost_snapshot.system_name and
-                buy.station_name == cost_snapshot.station_name
+                buy.system_name == cost_snapshot.system_name
+                and buy.station_name == cost_snapshot.station_name
             ):
                 stock_commodity.best_buys.pop(i)
 
@@ -84,9 +81,11 @@ class UpdateHandler:
         stock_commodity.best_buys.insert(i, cost_snapshot)
 
         # Trim excess results
-        stock_commodity.best_buys = stock_commodity.best_buys[:self.__max_best]
+        stock_commodity.best_buys = stock_commodity.best_buys[: self.__max_best]
 
-    def _insert_sell(self, stock_commodity: StockCommodity, cost_snapshot: CostSnapshot):
+    def _insert_sell(
+        self, stock_commodity: StockCommodity, cost_snapshot: CostSnapshot
+    ):
         if cost_snapshot.sell_price == 0:
             return
 
@@ -95,11 +94,11 @@ class UpdateHandler:
             return
 
         # Remove any existing results
-        for i in range(len(stock_commodity.best_sales)-1, -1, -1):
+        for i in range(len(stock_commodity.best_sales) - 1, -1, -1):
             sale = stock_commodity.best_sales[i]
             if (
-                sale.system_name == cost_snapshot.system_name and
-                sale.station_name == cost_snapshot.station_name
+                sale.system_name == cost_snapshot.system_name
+                and sale.station_name == cost_snapshot.station_name
             ):
                 stock_commodity.best_sales.pop(i)
 
@@ -111,4 +110,4 @@ class UpdateHandler:
             i += 1
         stock_commodity.best_sales.insert(i, cost_snapshot)
         # Trim excess results
-        stock_commodity.best_sales = stock_commodity.best_sales[:self.__max_best]
+        stock_commodity.best_sales = stock_commodity.best_sales[: self.__max_best]

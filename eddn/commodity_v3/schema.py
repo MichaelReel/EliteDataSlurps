@@ -25,13 +25,20 @@ class Bracket(fields.Field):
     """
     Field to accept bracket 0, 1, 2, 3 or "" info
     """
-    def _deserialize(self, value: Any, attr: Optional[str], data: Optional[Mapping[str, Any]], **kwargs):
+
+    def _deserialize(
+        self,
+        value: Any,
+        attr: Optional[str],
+        data: Optional[Mapping[str, Any]],
+        **kwargs
+    ):
         if isinstance(value, int):
             value = str(value)
         if isinstance(value, str):
             return super()._deserialize(value, attr, data, **kwargs)
         else:
-            raise ValidationError("Bracket should be int or \"\"")
+            raise ValidationError('Bracket should be int or ""')
 
 
 class CommoditySchema(BaseSchema):
@@ -43,7 +50,9 @@ class CommoditySchema(BaseSchema):
     sell_price = fields.Integer(required=True, data_key="sellPrice")
     demand = fields.Integer(required=True)
     demand_bracket = Bracket(required=True, data_key="demandBracket")
-    status_flags = fields.List(fields.String(required=True), allow_none=True, data_key="statusFlags")
+    status_flags = fields.List(
+        fields.String(required=True), allow_none=True, data_key="statusFlags"
+    )
 
     @post_load
     def to_domain(self, data, **kwargs) -> Commodity:
@@ -82,5 +91,3 @@ class CommodityV3Schema(BaseSchema):
     @post_load
     def to_domain(self, data, **kwargs) -> CommodityV3:
         return CommodityV3(**data)
-
-
