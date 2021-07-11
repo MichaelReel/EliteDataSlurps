@@ -5,9 +5,9 @@ import simplejson
 import sys
 import time
 
-from eddn.schema import CommodityV3Schema
+from eddn.commodity_v3.schema import CommodityV3Schema
 from summary import storage
-from summary.adapter.commodity_v3 import Adapter
+from summary.update_handler.commodity_v3 import UpdateHandler
 
 
 __relayEDDN = 'tcp://eddn.edcd.io:9500'
@@ -25,8 +25,11 @@ def main():
     commodity_v3_schema = CommodityV3Schema()
 
     summary = storage.load()
-    adapter = Adapter(summary)
+    adapter = UpdateHandler(summary)
     save_counter = __autosave_wait
+
+    # Dev extension analysis
+    received_schemas = {}
 
     while __continue:
         try:
@@ -43,7 +46,8 @@ def main():
                 json = simplejson.loads(message)
                 
                 # Handle commodity v3
-                if json['$schemaRef'] == 'https://eddn.edcd.io/schemas/commodity/3' :
+                schema_name = json['$schemaRef']
+                if schema_name == 'https://eddn.edcd.io/schemas/commodity/3' :
 
                     commodity_v3 = commodity_v3_schema.load(json)
                     adapter.update(commodity_v3)
@@ -55,8 +59,13 @@ def main():
                         save_counter = __autosave_wait
 
                     save_counter -= 1
-
                 
+                # Dev analysis
+                if schema_name in received_schemas:
+                    received_schemas[schema_name] += 1
+                else:
+                    received_schemas[schema_name] = 1
+
         except zmq.ZMQError as e:
             print ('ZMQSocketException: ' + str(e))
             sys.stdout.flush()
@@ -64,6 +73,7 @@ def main():
             time.sleep(5)
     
     storage.save(summary)
+    print(received_schemas)
 
 
 def signal_handler(sig, frame):

@@ -2,7 +2,7 @@ from marshmallow import Schema, fields, EXCLUDE, post_load
 from marshmallow.exceptions import ValidationError
 from typing import Any, Mapping, Optional
 
-from eddn.model import Commodity, CommodityV3, Economy, Header, Message
+from eddn.commodity_v3.model import Commodity, CommodityV3, Economy, Header, Message
 
 
 class BaseSchema(Schema):

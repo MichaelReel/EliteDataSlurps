@@ -1,4 +1,4 @@
-from eddn.schema import BaseSchema
+from eddn.commodity_v3.schema import BaseSchema
 from marshmallow import Schema, fields, EXCLUDE, post_load
 from typing import Any, Mapping, Optional
 

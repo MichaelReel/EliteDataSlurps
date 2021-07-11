@@ -1,14 +1,14 @@
 from bisect import insort_left, insort_right
 from typing import Optional
 from summary.model import Commodity as StockCommodity, CostSnapshot, StockSummary
-from eddn.model import (
+from eddn.commodity_v3.model import (
     Commodity as EddnCommodity, 
     CommodityV3 as EddnCommodityV3,
     Message
 )
 
 
-class Adapter:
+class UpdateHandler:
     __max_best = 5
     __min_stock = 500
     __min_demand = 1
