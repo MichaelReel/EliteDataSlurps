@@ -9,7 +9,9 @@ from eddn.model import (
 
 
 class Adapter:
-    __max_best = 1
+    __max_best = 5
+    __min_stock = 500
+    __min_demand = 1
 
     def __init__(self, target: StockSummary) -> None:
         self.stock_summary = target
@@ -59,6 +61,20 @@ class Adapter:
     def _insert_buy(self, stock_commodity: StockCommodity, cost_snapshot: CostSnapshot):
         if cost_snapshot.buy_price == 0:
             return
+        
+        # Check supply, ignore if too low
+        if cost_snapshot.stock < self.__min_stock:
+            return
+
+        # Remove any existing results
+        for i in range(len(stock_commodity.best_buys)-1, -1, -1):
+            buy = stock_commodity.best_buys[i]
+            if (
+                buy.system_name == cost_snapshot.system_name and
+                buy.station_name == cost_snapshot.station_name
+            ):
+                stock_commodity.best_buys.pop(i)
+
         # Put lowest prices first
         i = 0
         while i < len(stock_commodity.best_buys):
@@ -66,12 +82,27 @@ class Adapter:
                 break
             i += 1
         stock_commodity.best_buys.insert(i, cost_snapshot)
+
         # Trim excess results
         stock_commodity.best_buys = stock_commodity.best_buys[:self.__max_best]
 
     def _insert_sell(self, stock_commodity: StockCommodity, cost_snapshot: CostSnapshot):
         if cost_snapshot.sell_price == 0:
             return
+
+        # Check demand, ignore if too low
+        if cost_snapshot.demand < self.__min_demand:
+            return
+
+        # Remove any existing results
+        for i in range(len(stock_commodity.best_sales)-1, -1, -1):
+            sale = stock_commodity.best_sales[i]
+            if (
+                sale.system_name == cost_snapshot.system_name and
+                sale.station_name == cost_snapshot.station_name
+            ):
+                stock_commodity.best_sales.pop(i)
+
         # Put highest prices first
         i = 0
         while i < len(stock_commodity.best_sales):

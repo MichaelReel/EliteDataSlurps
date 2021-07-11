@@ -1,4 +1,3 @@
-from summary.adapter.commodity_v3 import Adapter
 import zlib
 import zmq
 import signal
@@ -7,13 +6,14 @@ import sys
 import time
 
 from eddn.schema import CommodityV3Schema
-from summary.model import StockSummary
 from summary import storage
+from summary.adapter.commodity_v3 import Adapter
 
 
 __relayEDDN = 'tcp://eddn.edcd.io:9500'
 __timeoutEDDN = 600000
 __continue = True
+__autosave_wait = 100
 
 
 def main():
@@ -26,6 +26,7 @@ def main():
 
     summary = storage.load()
     adapter = Adapter(summary)
+    save_counter = __autosave_wait
 
     while __continue:
         try:
@@ -48,6 +49,12 @@ def main():
                     adapter.update(commodity_v3)
                     print(f"{commodity_v3.header.uploader_id}:{commodity_v3.message.system_name}/{commodity_v3.message.station_name}")
                     sys.stdout.flush()
+
+                    if save_counter <= 0:
+                        storage.save(summary)
+                        save_counter = __autosave_wait
+
+                    save_counter -= 1
 
                 
         except zmq.ZMQError as e:
