@@ -1,11 +1,10 @@
-from summary import commodity_handler
-from summary.model import CostSnapshot, StockSummary
-import zlib
-import zmq
+import numpy
 import signal
 import simplejson
 import sys
 import time
+import zlib
+import zmq
 
 from eddn.commodity_v3.model import Commodity, CommodityV3
 from eddn.commodity_v3.schema import CommodityV3Schema
@@ -15,6 +14,7 @@ from summary.commodity_handler import storage as commodity_storage
 from summary.commodity_handler.commodity_v3 import SummaryHandler
 from summary.journal_handler import storage as journal_storage
 from summary.journal_handler.journal_v1 import JournalHandler
+from summary.model import CostSnapshot, StockSummary
 
 
 __relayEDDN = "tcp://eddn.edcd.io:9500"
@@ -164,13 +164,20 @@ def print_best_trades(commodity_summary: StockSummary) -> None:
         commodity: Commodity = best_trades[key]
         buy_from: CostSnapshot = commodity.best_buys[0]
         sell_to: CostSnapshot = commodity.best_sales[0]
-        print(f"{commodity.name} ({key}):")
+        distance: float = get_trade_distance(buy_from, sell_to)
+        print(f"{commodity.name} (Profit per unit: {key}, Distance: {distance:.2f} ly):")
         print(
             f"  Buy at {buy_from.buy_price} from {buy_from.system_name} / {buy_from.station_name} ({buy_from.station_type})"
         )
         print(
             f"  Sell at {sell_to.sell_price} from {sell_to.system_name} / {sell_to.station_name} ({sell_to.station_type})"
         )
+
+
+def get_trade_distance(_from: CostSnapshot, _to: CostSnapshot) -> float:
+    a = numpy.array(_from.star_pos)
+    b = numpy.array(_to.star_pos)
+    return numpy.linalg.norm(a - b)
 
 
 def signal_handler(sig, frame) -> None:
