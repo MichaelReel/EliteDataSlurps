@@ -15,7 +15,15 @@ class JournalHandler:
         """Updates the summary and returns true if it's time to save"""
         system = journal_v1.message.system_name
         station = journal_v1.message.station_name
-        if not self.get_dock_entry(system=system, station=station):
+        if dock_entry := self.get_dock_entry(system=system, station=station):
+            if not dock_entry.station_type:
+                self._set_dock_entry(
+                    system=system, station=station, journal_v1=journal_v1
+                )
+                print(
+                    f"    Updating existing dock entry {system}/{station} ({journal_v1.message.station_type})"
+                )
+        else:
             self._set_dock_entry(system=system, station=station, journal_v1=journal_v1)
 
         if self.save_counter <= 0:

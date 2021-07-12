@@ -1,3 +1,5 @@
+from summary import commodity_handler
+from summary.model import CostSnapshot, StockSummary
 import zlib
 import zmq
 import signal
@@ -5,7 +7,7 @@ import simplejson
 import sys
 import time
 
-from eddn.commodity_v3.model import CommodityV3
+from eddn.commodity_v3.model import Commodity, CommodityV3
 from eddn.commodity_v3.schema import CommodityV3Schema
 from eddn.journal_v1.model import JournalV1
 from eddn.journal_v1.schema import JournalV1Schema
@@ -41,6 +43,7 @@ def main():
     # Dev extension analysis
     received_schemas = {}
     journal_events = {}
+    station_types = {}
 
     while __continue:
         try:
@@ -73,6 +76,16 @@ def main():
                     else:
                         journal_events[event] = 1
 
+                    # Dev analysis
+                    event = journal_v1.message.event
+                    station = journal_v1.message.station_name
+                    if (event == "Docked" or event == "Location") and station:
+                        station_type = journal_v1.message.station_type or "None"
+                        if station_type in station_types:
+                            station_types[station_type] += 1
+                        else:
+                            station_types[station_type] = 1
+
                 # Dev analysis
                 if schema_name in received_schemas:
                     received_schemas[schema_name] += 1
@@ -89,6 +102,9 @@ def main():
     journal_storage.save(journal_summary)
     print(received_schemas)
     print(journal_events)
+    print(station_types)
+
+    print_best_trades(commodity_summary)
 
 
 def handle_commodity_v3(update_handler: SummaryHandler, json: dict) -> CommodityV3:
@@ -131,7 +147,33 @@ def handle_journal_v1(update_handler: JournalHandler, json: dict) -> JournalV1:
     return journal_v1
 
 
-def signal_handler(sig, frame):
+def print_best_trades(commodity_summary: StockSummary) -> None:
+    best_trades = {}
+    for commodity in commodity_summary.commodities:
+        if commodity.best_buys and commodity.best_sales:
+            key = float(
+                commodity.best_sales[0].sell_price - commodity.best_buys[0].buy_price
+            )
+            while key in best_trades:
+                key -= 0.001
+            best_trades[key] = commodity
+
+    top_five_keys = sorted(best_trades.keys(), reverse=True)[:5]
+
+    for key in top_five_keys:
+        commodity: Commodity = best_trades[key]
+        buy_from: CostSnapshot = commodity.best_buys[0]
+        sell_to: CostSnapshot = commodity.best_sales[0]
+        print(f"{commodity.name} ({key}):")
+        print(
+            f"  Buy at {buy_from.buy_price} from {buy_from.system_name} / {buy_from.station_name} ({buy_from.station_type})"
+        )
+        print(
+            f"  Sell at {sell_to.sell_price} from {sell_to.system_name} / {sell_to.station_name} ({sell_to.station_type})"
+        )
+
+
+def signal_handler(sig, frame) -> None:
     global __continue
     __continue = False
 

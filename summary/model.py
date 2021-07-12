@@ -20,6 +20,7 @@ class CostSnapshot:
     dist_from_star_ls: Optional[float] = None
     station_allegiance: Optional[str] = None
 
+
 @dataclass
 class Commodity:
     name: str
