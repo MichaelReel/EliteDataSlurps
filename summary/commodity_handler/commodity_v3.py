@@ -16,7 +16,18 @@ class SummaryHandler:
     __min_stock = 500
     __min_demand = 1
     __autosave_wait = 5
-    __acceptable_station_types = []
+    __acceptable_station_types = [
+        "Ocellus",
+        "Coriolis",
+        "Orbis",
+        "Outpost",
+        "AsteroidBase",
+        "MegaShip",
+        # "CraterOutpost", # Planetary
+        # "CraterPort", # Planetary
+        # "OnFootSettlement", # Odessey
+        # "FleetCarrier", # Ephemeral
+    ]
 
     def __init__(self, target: StockSummary, journal_handler: JournalHandler) -> None:
         self.stock_summary = target
@@ -63,24 +74,26 @@ class SummaryHandler:
         if journal_dock := self.journal_handler.get_dock_entry(
             system=system, station=station
         ):
-            cost_snapshot = CostSnapshot(
-                system_name=system,
-                station_name=station,
-                timestamp=message.timestamp,
-                buy_price=eddn_commodity.buy_price,
-                stock=eddn_commodity.stock,
-                sell_price=eddn_commodity.sell_price,
-                demand=eddn_commodity.demand,
-                market_id=journal_dock.market_id,
-                star_pos=journal_dock.star_pos,
-                station_type=journal_dock.station_type,
-                system_address=journal_dock.system_address,
-                dist_from_star_ls=journal_dock.dist_from_star_ls,
-                station_allegiance=journal_dock.station_allegiance,
-            )
+            station_type = journal_dock.station_type
+            if station_type in self.__acceptable_station_types:
+                cost_snapshot = CostSnapshot(
+                    system_name=system,
+                    station_name=station,
+                    timestamp=message.timestamp,
+                    buy_price=eddn_commodity.buy_price,
+                    stock=eddn_commodity.stock,
+                    sell_price=eddn_commodity.sell_price,
+                    demand=eddn_commodity.demand,
+                    market_id=journal_dock.market_id,
+                    star_pos=journal_dock.star_pos,
+                    station_type=station_type,
+                    system_address=journal_dock.system_address,
+                    dist_from_star_ls=journal_dock.dist_from_star_ls,
+                    station_allegiance=journal_dock.station_allegiance,
+                )
 
-            self._insert_buy(stock_commodity, cost_snapshot)
-            self._insert_sell(stock_commodity, cost_snapshot)
+                self._insert_buy(stock_commodity, cost_snapshot)
+                self._insert_sell(stock_commodity, cost_snapshot)
 
     def _insert_buy(self, stock_commodity: StockCommodity, cost_snapshot: CostSnapshot):
         if cost_snapshot.buy_price == 0:
