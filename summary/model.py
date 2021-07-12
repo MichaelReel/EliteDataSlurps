@@ -13,6 +13,12 @@ class CostSnapshot:
     sell_price: int
     demand: int
 
+    market_id: Optional[int] = None
+    star_pos: Optional[List[float]] = None
+    station_type: Optional[str] = None
+    system_address: Optional[int] = None
+    dist_from_star_ls: Optional[float] = None
+    station_allegiance: Optional[str] = None
 
 @dataclass
 class Commodity:

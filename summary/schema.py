@@ -19,6 +19,13 @@ class CostSnapshotSchema(BaseSchema):
     sell_price = fields.Integer(required=True)
     demand = fields.Integer(required=True)
 
+    market_id = fields.Integer(allow_none=True)
+    star_pos = fields.List(fields.Float(), allow_none=True)
+    station_type = fields.String(allow_none=True)
+    system_address = fields.Integer(allow_none=True)
+    dist_from_star_ls = fields.Float(allow_none=True)
+    station_allegiance = fields.String(allow_none=True)
+
     @post_load
     def to_domain(self, data, **kwargs) -> CostSnapshot:
         return CostSnapshot(**data)

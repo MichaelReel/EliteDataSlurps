@@ -1,4 +1,5 @@
 from bisect import insort_left, insort_right
+from summary import journal_handler
 from typing import Optional
 
 from eddn.commodity_v3.model import (
@@ -14,7 +15,7 @@ class SummaryHandler:
     __max_best = 5
     __min_stock = 500
     __min_demand = 1
-    __autosave_wait = 100
+    __autosave_wait = 5
 
     def __init__(self, target: StockSummary, journal_handler: JournalHandler) -> None:
         self.stock_summary = target
@@ -56,15 +57,25 @@ class SummaryHandler:
         self, eddn_commodity: EddnCommodity, message: Message
     ):
         stock_commodity: StockCommodity = self._get_stock_commodity(eddn_commodity.name)
+        system = message.system_name
+        station = message.station_name
         cost_snapshot = CostSnapshot(
-            system_name=message.system_name,
-            station_name=message.station_name,
+            system_name=system,
+            station_name=station,
             timestamp=message.timestamp,
             buy_price=eddn_commodity.buy_price,
             stock=eddn_commodity.stock,
             sell_price=eddn_commodity.sell_price,
             demand=eddn_commodity.demand,
         )
+        if journal_dock := self.journal_handler.get_dock_entry(system=system, station=station):
+            cost_snapshot.market_id = journal_dock.market_id
+            cost_snapshot.star_pos = journal_dock.star_pos
+            cost_snapshot.station_type = journal_dock.station_type
+            cost_snapshot.system_address = journal_dock.system_address
+            cost_snapshot.dist_from_star_ls = journal_dock.dist_from_star_ls
+            cost_snapshot.station_allegiance = journal_dock.station_allegiance
+
         self._insert_buy(stock_commodity, cost_snapshot)
         self._insert_sell(stock_commodity, cost_snapshot)
 

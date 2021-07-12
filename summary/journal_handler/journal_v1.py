@@ -5,7 +5,7 @@ from summary.model import DockSummary, Station
 
 
 class JournalHandler:
-    __autosave_wait = 100
+    __autosave_wait = 5
 
     def __init__(self, target: DockSummary) -> None:
         self.journal = target

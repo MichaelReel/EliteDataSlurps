@@ -102,7 +102,7 @@ def handle_commodity_v3(update_handler: SummaryHandler, json: dict) -> Commodity
     sys.stdout.flush()
 
     if time_to_save:
-        commodity_storage.save(update_handler.summary)
+        commodity_storage.save(update_handler.stock_summary)
 
     return commodity_v3
 
@@ -126,7 +126,7 @@ def handle_journal_v1(update_handler: JournalHandler, json: dict) -> JournalV1:
         print(f"    {uploader}:{system}/{station}({station_type}) : {event}")
 
         if time_to_save:
-            journal_storage.save(update_handler.summary)
+            journal_storage.save(update_handler.journal)
 
     return journal_v1
 
