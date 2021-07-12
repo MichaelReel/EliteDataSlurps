@@ -13,7 +13,7 @@ def load() -> StockSummary:
             data = json.load(json_file)
             return StockSummarySchema().load(data)
     except FileNotFoundError:
-        return StockSummary(commodities=[])
+        return StockSummary()
 
 
 def save(summary: StockSummary):

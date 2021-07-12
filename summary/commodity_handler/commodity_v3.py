@@ -1,21 +1,24 @@
 from bisect import insort_left, insort_right
 from typing import Optional
-from summary.model import Commodity as StockCommodity, CostSnapshot, StockSummary
+
 from eddn.commodity_v3.model import (
     Commodity as EddnCommodity,
     CommodityV3 as EddnCommodityV3,
     Message,
 )
+from summary.journal_handler.journal_v1 import JournalHandler
+from summary.model import Commodity as StockCommodity, CostSnapshot, StockSummary
 
 
-class UpdateHandler:
+class SummaryHandler:
     __max_best = 5
     __min_stock = 500
     __min_demand = 1
     __autosave_wait = 100
 
-    def __init__(self, target: StockSummary) -> None:
+    def __init__(self, target: StockSummary, journal_handler: JournalHandler) -> None:
         self.stock_summary = target
+        self.journal_handler = journal_handler
         self.commodity_index = {}
         self._create_commodity_index()
         self.save_counter = self.__autosave_wait

@@ -130,3 +130,4 @@ dmypy.json
 
 # Keep stockfile out of the repo, at least for now
 stockfile.json
+dockfile.json
