@@ -1,3 +1,5 @@
+import numpy
+
 from bisect import insort_left, insort_right
 from summary import journal_handler
 from typing import Optional
@@ -28,6 +30,8 @@ class SummaryHandler:
         # "OnFootSettlement", # Odessey
         # "FleetCarrier", # Ephemeral
     ]
+    __origin = numpy.array([0.0, 0.0, 0.0])
+    __max_from_origin = 500
 
     def __init__(self, target: StockSummary, journal_handler: JournalHandler) -> None:
         self.stock_summary = target
@@ -75,7 +79,12 @@ class SummaryHandler:
             system=system, station=station
         ):
             station_type = journal_dock.station_type
-            if station_type in self.__acceptable_station_types:
+            coords = numpy.array(journal_dock.star_pos)
+            dist_from_origin = numpy.linalg.norm(coords - self.__origin)
+            if (
+                station_type in self.__acceptable_station_types
+                and dist_from_origin <= self.__max_from_origin
+            ):
                 cost_snapshot = CostSnapshot(
                     system_name=system,
                     station_name=station,

@@ -165,7 +165,9 @@ def print_best_trades(commodity_summary: StockSummary) -> None:
         buy_from: CostSnapshot = commodity.best_buys[0]
         sell_to: CostSnapshot = commodity.best_sales[0]
         distance: float = get_trade_distance(buy_from, sell_to)
-        print(f"{commodity.name} (Profit per unit: {key}, Distance: {distance:.2f} ly):")
+        print(
+            f"{commodity.name} (Profit per unit: {key}, Distance: {distance:.2f} ly):"
+        )
         print(
             f"  Buy at {buy_from.buy_price} from {buy_from.system_name} / {buy_from.station_name} ({buy_from.station_type})"
         )
