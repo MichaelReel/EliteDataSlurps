@@ -20,10 +20,10 @@ from summary.model import CostSnapshot, StockSummary
 __relayEDDN = "tcp://eddn.edcd.io:9500"
 __timeoutEDDN = 600000
 __continue = True
+__print_wait = 20  # Print per messages parsed
 
 commodity_v3_schema = CommodityV3Schema()
 journal_v1_schema = JournalV1Schema()
-
 
 def main():
     context = zmq.Context()
@@ -34,16 +34,21 @@ def main():
 
     journal_summary = journal_storage.load()
     journal_handler = JournalHandler(target=journal_summary)
+    print(f"Journal loaded with {len(journal_summary.stations)} stations")
 
     commodity_summary = commodity_storage.load()
     commodity_handler = SummaryHandler(
         target=commodity_summary, journal_handler=journal_handler
     )
+    print(f"Stock list loaded with {len(commodity_summary.commodities)} commodities")
+
+    print_counter = __print_wait
 
     # Dev extension analysis
     received_schemas = {}
     journal_events = {}
     station_types = {}
+
 
     while __continue:
         try:
@@ -91,6 +96,14 @@ def main():
                     received_schemas[schema_name] += 1
                 else:
                     received_schemas[schema_name] = 1
+                
+                # Print after print_counter messages parsed
+                if print_counter <= 0:
+                    print_counter = __print_wait
+                    print_best_trades(commodity_summary)
+                    sys.stdout.flush()
+                else:
+                    print_counter -= 1
 
         except zmq.ZMQError as e:
             print("ZMQSocketException: " + str(e))
@@ -111,11 +124,10 @@ def handle_commodity_v3(update_handler: SummaryHandler, json: dict) -> Commodity
     commodity_v3 = commodity_v3_schema.load(json)
     time_to_save = update_handler.update(commodity_v3)
 
-    uploader_id = commodity_v3.header.uploader_id
-    system_name = commodity_v3.message.system_name
-    station_name = commodity_v3.message.station_name
-    print(f"{uploader_id}:{system_name}/{station_name}")
-    sys.stdout.flush()
+    # uploader_id = commodity_v3.header.uploader_id
+    # system_name = commodity_v3.message.system_name
+    # station_name = commodity_v3.message.station_name
+    # print(f"{uploader_id}:{system_name}/{station_name}")
 
     if time_to_save:
         commodity_storage.save(update_handler.stock_summary)
@@ -134,12 +146,10 @@ def handle_journal_v1(update_handler: JournalHandler, json: dict) -> JournalV1:
 
         time_to_save = update_handler.update(journal_v1)
 
-        uploader = journal_v1.header.uploader_id
-        system = journal_v1.message.system_name
-        station = journal_v1.message.station_name
-        station_type = journal_v1.message.station_type
-
-        print(f"    {uploader}:{system}/{station}({station_type}) : {event}")
+        # uploader = journal_v1.header.uploader_id
+        # system = journal_v1.message.system_name
+        # station_type = journal_v1.message.station_type
+        # print(f"    {uploader}:{system}/{station}({station_type}) : {event}")
 
         if time_to_save:
             journal_storage.save(update_handler.journal)
@@ -160,6 +170,7 @@ def print_best_trades(commodity_summary: StockSummary) -> None:
 
     top_five_keys = sorted(best_trades.keys(), reverse=True)[:5]
 
+    print("-"*100)
     for key in top_five_keys:
         commodity: Commodity = best_trades[key]
         buy_from: CostSnapshot = commodity.best_buys[0]
@@ -169,10 +180,10 @@ def print_best_trades(commodity_summary: StockSummary) -> None:
             f"{commodity.name} (Profit per unit: {key}, Distance: {distance:.2f} ly):"
         )
         print(
-            f"  Buy at {buy_from.buy_price} from {buy_from.system_name} / {buy_from.station_name} ({buy_from.station_type})"
+            f"  Buy at  {buy_from.buy_price:=7d} from {buy_from.system_name} / {buy_from.station_name} ({buy_from.station_type})"
         )
         print(
-            f"  Sell at {sell_to.sell_price} from {sell_to.system_name} / {sell_to.station_name} ({sell_to.station_type})"
+            f"  Sell at {sell_to.sell_price:=7d}   to {sell_to.system_name} / {sell_to.station_name} ({sell_to.station_type})"
         )
 
 

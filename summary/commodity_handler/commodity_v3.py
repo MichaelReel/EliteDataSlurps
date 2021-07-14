@@ -46,15 +46,15 @@ class SummaryHandler:
         is live in this adapter. We drop and re-create on file load.
         """
         for commodity in self.stock_summary.commodities:
-            self.commodity_index[commodity.name] = commodity
+            self.commodity_index[commodity.name.lower()] = commodity
 
     def _get_stock_commodity(self, name: str) -> Optional[StockCommodity]:
-        if name in self.commodity_index:
-            return self.commodity_index[name]
+        if name.lower() in self.commodity_index:
+            return self.commodity_index[name.lower()]
         else:
             stock_commodity = StockCommodity(name=name, best_buys=[], best_sales=[])
             self.stock_summary.commodities.append(stock_commodity)
-            self.commodity_index[name] = stock_commodity
+            self.commodity_index[name.lower()] = stock_commodity
             return stock_commodity
 
     def update(self, commodity_v3: EddnCommodityV3) -> bool:
