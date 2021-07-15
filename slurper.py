@@ -6,6 +6,8 @@ import time
 import zlib
 import zmq
 
+from datetime import datetime
+
 from eddn.commodity_v3.model import Commodity, CommodityV3
 from eddn.commodity_v3.schema import CommodityV3Schema
 from eddn.journal_v1.model import JournalV1
@@ -170,7 +172,7 @@ def print_best_trades(commodity_summary: StockSummary) -> None:
 
     top_five_keys = sorted(best_trades.keys(), reverse=True)[:5]
 
-    print("-"*100)
+    print(f"{datetime.now().isoformat():=^99}-")
     for key in top_five_keys:
         commodity: Commodity = best_trades[key]
         buy_from: CostSnapshot = commodity.best_buys[0]
@@ -180,11 +182,16 @@ def print_best_trades(commodity_summary: StockSummary) -> None:
             f"{commodity.name} (Profit per unit: {key}, Distance: {distance:.2f} ly):"
         )
         print(
-            f"  Buy at  {buy_from.buy_price:=7d} from {buy_from.system_name} / {buy_from.station_name} ({buy_from.station_type})"
+            f"  Buy at  {buy_from.buy_price:=7d} from {buy_from.system_name: ^25} /"
+            f" {buy_from.station_name: ^25} ({buy_from.station_type: ^10})"
+            f" {buy_from.timestamp}"
         )
         print(
-            f"  Sell at {sell_to.sell_price:=7d}   to {sell_to.system_name} / {sell_to.station_name} ({sell_to.station_type})"
+            f"  Sell at {sell_to.sell_price:=7d}   to {sell_to.system_name: ^25} /"
+            f" {sell_to.station_name: ^25} ({sell_to.station_type: ^10})"
+            f" {sell_to.timestamp}"
         )
+        print("-"*100)
 
 
 def get_trade_distance(_from: CostSnapshot, _to: CostSnapshot) -> float:
