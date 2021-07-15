@@ -41,7 +41,7 @@ class Station:
     station_type: str
     system_address: int
     system_name: str
-    timestamp: datetime
+    timestamp: str
     dist_from_star_ls: Optional[float] = None
     station_allegiance: Optional[str] = None
 

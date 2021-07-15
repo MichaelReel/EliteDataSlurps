@@ -14,7 +14,7 @@ class HeaderSchema(BaseSchema):
     uploader_id = fields.String(required=True, data_key="uploaderID")
     software_name = fields.String(required=True, data_key="softwareName")
     software_version = fields.String(required=True, data_key="softwareVersion")
-    gateway_timestamp = fields.DateTime(allow_none=True, data_key="gatewayTimestamp")
+    gateway_timestamp = fields.String(allow_none=True, data_key="gatewayTimestamp")
 
     @post_load
     def to_domain(self, data, **kwargs) -> Header:
@@ -72,7 +72,7 @@ class MessageSchema(BaseSchema):
     system_name = fields.String(required=True, data_key="systemName")
     station_name = fields.String(required=True, data_key="stationName")
     market_id = fields.Integer(required=True, data_key="marketId")
-    timestamp = fields.DateTime(required=True)
+    timestamp = fields.String(required=True)
     commodities = fields.List(fields.Nested(CommoditySchema), required=True)
     economies = fields.List(fields.Nested(EconomySchema), allow_none=True)
     prohibited = fields.List(fields.String(), allow_none=True)

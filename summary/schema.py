@@ -56,7 +56,7 @@ class StationSchema(BaseSchema):
     station_type = fields.String(required=True)
     system_address = fields.Integer(required=True)
     system_name = fields.String(required=True)
-    timestamp = fields.DateTime(required=True)
+    timestamp = fields.String(required=True)
     dist_from_star_ls = fields.Float(allow_none=True)
     station_allegiance = fields.String(allow_none=True)
 

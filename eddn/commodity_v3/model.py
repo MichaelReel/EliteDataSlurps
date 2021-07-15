@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import List, Optional
 
 
@@ -8,7 +7,7 @@ class Header:
     uploader_id: str
     software_name: str
     software_version: str
-    gateway_timestamp: datetime
+    gateway_timestamp: str
 
 
 @dataclass
@@ -35,7 +34,7 @@ class Message:
     system_name: str
     station_name: str
     market_id: int
-    timestamp: datetime
+    timestamp: str
     commodities: List[Commodity]
 
     economies: Optional[List[Economy]] = None
