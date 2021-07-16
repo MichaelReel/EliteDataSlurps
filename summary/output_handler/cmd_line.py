@@ -31,32 +31,41 @@ class Output:
         print_time = datetime.now().astimezone()
         print_time = print_time.replace(microsecond=0)
 
-        print(f"{print_time.isoformat():=^100}", file=ret_io)
+        print(f"-{f'- {print_time.isoformat()} -':=^98}-", file=ret_io)
         for key in top_five_keys:
             commodity: Commodity = best_trades[key]
-            buy_from: CostSnapshot = commodity.best_buys[0]
-            sell_to: CostSnapshot = commodity.best_sales[0]
-            distance: float = get_trade_distance(buy_from, sell_to)
+            top_buy_from: CostSnapshot = commodity.best_buys[0]
+            top_sell_to: CostSnapshot = commodity.best_sales[0]
+            distance: float = get_trade_distance(top_buy_from, top_sell_to)
             print(
-                f"{commodity.name.upper()} (Profit per unit: {key}, Distance: {distance:.2f} ly):",
+                f"  {commodity.name.upper()}  (Best: profit per unit: {key}, Distance: {distance:.2f} ly):",
                 file=ret_io,
             )
-            buy_age = relativedelta(print_time, parse(buy_from.timestamp))
-            print(
-                f"  Buy at  {buy_from.buy_price:=7d} from {buy_from.system_name: ^25} /"
-                f" {buy_from.station_name: ^25} ({buy_from.station_type: ^10})"
-                f"{f' {buy_age.days}d' if buy_age.day else ''}"
-                f" {buy_age.hours:02d}:{buy_age.minutes:02d}:{buy_age.seconds:02d}",
-                file=ret_io,
-            )
-            sell_age = relativedelta(print_time, parse(sell_to.timestamp))
-            print(
-                f"  Sell at {sell_to.sell_price:=7d}   to {sell_to.system_name: ^25} /"
-                f" {sell_to.station_name: ^25} ({sell_to.station_type: ^10})"
-                f"{f' {sell_age.days}d' if sell_age.day else ''}"
-                f" {sell_age.hours:02d}:{sell_age.minutes:02d}:{sell_age.seconds:02d}",
-                file=ret_io,
-            )
+            for buy_from in commodity.best_buys[::-1]:
+                buy_age = relativedelta(print_time, parse(buy_from.timestamp))
+                distance: float = get_trade_distance(buy_from, top_sell_to)
+                print(
+                    f"Buy for {buy_from.buy_price:7d} from {buy_from.system_name: >24}"
+                    f" {buy_from.station_name[:24]: >24}"
+                    # f" {buy_from.station_type: >8}"
+                    f"{f' {buy_age.days}d' if buy_age.day else ''}"
+                    f" {buy_age.hours:02d}:{buy_age.minutes:02d}:{buy_age.seconds:02d}"
+                    f" {distance:6.2f} ly",
+                    file=ret_io,
+                )
+
+            for sell_to in commodity.best_sales:
+                sell_age = relativedelta(print_time, parse(sell_to.timestamp))
+                distance: float = get_trade_distance(top_buy_from, sell_to)
+                print(
+                    f"Sell at {sell_to.sell_price:7d}   to {sell_to.system_name: >24}"
+                    f" {sell_to.station_name[:24]: >24}"
+                    # f" {sell_to.station_type: >8}"
+                    f"{f' {sell_age.days}d' if sell_age.day else ''}"
+                    f" {sell_age.hours:02d}:{sell_age.minutes:02d}:{sell_age.seconds:02d}"
+                    f" {distance:6.2f} ly",
+                    file=ret_io,
+                )
             print("-" * 100, file=ret_io)
 
         return ret_io.getvalue()
