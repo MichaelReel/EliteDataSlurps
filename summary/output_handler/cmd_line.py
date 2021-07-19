@@ -45,12 +45,15 @@ class Output:
                 buy_age = relativedelta(print_time, parse(buy_from.timestamp))
                 distance: float = get_trade_distance(buy_from, top_sell_to)
                 print(
-                    f"Buy for {buy_from.buy_price:7d} from {buy_from.system_name: >24}"
+                    f"Buy  @{buy_from.buy_price:7d}"
+                    f" <  {buy_from.system_name: >26}"
                     f" {buy_from.station_name[:24]: >24}"
                     # f" {buy_from.station_type: >8}"
-                    f"{f' {buy_age.days}d' if buy_age.day else ''}"
+                    f"{f' {buy_age.days}d' if buy_age.days else ''}"
                     f" {buy_age.hours:02d}:{buy_age.minutes:02d}:{buy_age.seconds:02d}"
-                    f" {distance:6.2f} ly",
+                    f" {distance:6.2f} ly"
+                    f" {buy_from.dist_from_star_ls or 0:9.2f} ls"
+                    ,
                     file=ret_io,
                 )
 
@@ -58,12 +61,15 @@ class Output:
                 sell_age = relativedelta(print_time, parse(sell_to.timestamp))
                 distance: float = get_trade_distance(top_buy_from, sell_to)
                 print(
-                    f"Sell at {sell_to.sell_price:7d}   to {sell_to.system_name: >24}"
+                    f"Sell @{sell_to.sell_price:7d}"
+                    f"  > {sell_to.system_name: >26}"
                     f" {sell_to.station_name[:24]: >24}"
                     # f" {sell_to.station_type: >8}"
-                    f"{f' {sell_age.days}d' if sell_age.day else ''}"
+                    f"{f' {sell_age.days}d' if sell_age.days else ''}"
                     f" {sell_age.hours:02d}:{sell_age.minutes:02d}:{sell_age.seconds:02d}"
-                    f" {distance:6.2f} ly",
+                    f" {distance:6.2f} ly"
+                    f" {sell_to.dist_from_star_ls or 0:9.2f} ls"
+                    ,
                     file=ret_io,
                 )
             print("-" * 100, file=ret_io)
