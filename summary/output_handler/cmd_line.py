@@ -49,10 +49,10 @@ class Output:
                     f" <  {buy_from.system_name: >26}"
                     f" {buy_from.station_name[:24]: >24}"
                     # f" {buy_from.station_type: >8}"
-                    f"{f' {buy_age.days}d' if buy_age.days else ''}"
-                    f" {buy_age.hours:02d}:{buy_age.minutes:02d}:{buy_age.seconds:02d}"
                     f" {distance:6.2f} ly"
                     f" {buy_from.dist_from_star_ls or 0:9.2f} ls"
+                    f"{f' {buy_age.days}d' if buy_age.days else '   '}"
+                    f" {buy_age.hours:02d}:{buy_age.minutes:02d}:{buy_age.seconds:02d}"
                     ,
                     file=ret_io,
                 )
@@ -65,10 +65,10 @@ class Output:
                     f"  > {sell_to.system_name: >26}"
                     f" {sell_to.station_name[:24]: >24}"
                     # f" {sell_to.station_type: >8}"
-                    f"{f' {sell_age.days}d' if sell_age.days else ''}"
-                    f" {sell_age.hours:02d}:{sell_age.minutes:02d}:{sell_age.seconds:02d}"
                     f" {distance:6.2f} ly"
                     f" {sell_to.dist_from_star_ls or 0:9.2f} ls"
+                    f"{f' {sell_age.days}d' if sell_age.days else '   '}"
+                    f" {sell_age.hours:02d}:{sell_age.minutes:02d}:{sell_age.seconds:02d}"
                     ,
                     file=ret_io,
                 )
