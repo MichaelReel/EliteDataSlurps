@@ -11,12 +11,12 @@ from summary.model import CostSnapshot, StockSummary
 
 class Output:
     __station_highlights = {
-        "Outpost": "M",
-        "AsteroidBase": "A",
-        "CraterOutpost": "P",
-        "CraterPort": "P",
-        "OnFootSettlement": "O",
-        "FleetCarrier": "F",
+        "Outpost".lower(): "M",
+        "AsteroidBase".lower(): "A",
+        "CraterOutpost".lower(): "P",
+        "CraterPort".lower(): "P",
+        "OnFootSettlement".lower(): "O",
+        "FleetCarrier".lower(): "F",
     }
     def __init__(self, target: StockSummary):
         self.commodity_summary = target
@@ -52,7 +52,7 @@ class Output:
             for buy_from in commodity.best_buys[::-1]:
                 buy_age = relativedelta(print_time, parse(buy_from.timestamp))
                 distance: float = get_trade_distance(buy_from, top_sell_to)
-                station_highlight = self.__station_highlights.get(buy_from.station_type, " ")
+                station_highlight = self.__station_highlights.get(buy_from.station_type.lower(), " ")
                 print(
                     f"Buy  @{buy_from.buy_price:7d}"
                     f" <  {buy_from.system_name: >26}"
@@ -69,7 +69,7 @@ class Output:
             for sell_to in commodity.best_sales:
                 sell_age = relativedelta(print_time, parse(sell_to.timestamp))
                 distance: float = get_trade_distance(top_buy_from, sell_to)
-                station_highlight = self.__station_highlights.get(buy_from.station_type, " ")
+                station_highlight = self.__station_highlights.get(sell_to.station_type.lower(), " ")
                 print(
                     f"Sell @{sell_to.sell_price:7d}"
                     f"  > {sell_to.system_name: >26}"
