@@ -6,7 +6,7 @@ import zlib
 from eddn.commodity_v3.model import CommodityV3
 from eddn.commodity_v3.schema import CommodityV3Schema
 from eddn.connection.eddn import EddnListener
-from eddn.journal_v1.model import JournalV1
+from eddn.journal_v1.model import JournalV1, Message
 from eddn.journal_v1.schema import JournalV1Schema
 from summary.commodity_handler import storage as commodity_storage
 from summary.commodity_handler.commodity_v3 import SummaryHandler
@@ -38,38 +38,19 @@ class Slurper:
         
         self.commodity_v3_schema = CommodityV3Schema()
         self.journal_v1_schema = JournalV1Schema()
-
-        # Dev extension analysis
-        self._received_schemas = {}
-        self._journal_events = {}
-        self._station_types = {}
+        
+        self._setup_dev_analysis()
 
     def message_callback(self, message: str) -> None:
         self.handle_eddn_message(
-            self.journal_handler,
-            self.commodity_handler,
-            self.print_handler,
-            self._received_schemas,
-            self._journal_events,
-            self._station_types,
             message,
         )
-
-    def get_dev_analysis(self) -> str:
-        return str(self._received_schemas) + "\n" + str(self._journal_events) + "\n" + str(self._station_types)
 
     def get_highest_trade_diffs_str(self) -> str:
         return self.print_handler.get_highest_trade_diffs_str()
 
-
     def handle_eddn_message(
         self,
-        journal_handler,
-        commodity_handler,
-        print_handler,
-        received_schemas,
-        journal_events,
-        station_types,
         message,
     ):
         message = zlib.decompress(message)
@@ -78,38 +59,23 @@ class Slurper:
         # Handle schemas
         schema_name = json["$schemaRef"]
         if schema_name == "https://eddn.edcd.io/schemas/commodity/3":
-            self.handle_commodity_v3(update_handler=commodity_handler, json=json)
+            self.handle_commodity_v3(update_handler=self.commodity_handler, json=json)
 
         if schema_name == "https://eddn.edcd.io/schemas/journal/1":
-            journal_v1 = self.handle_journal_v1(update_handler=journal_handler, json=json)
+            journal_v1 = self.handle_journal_v1(update_handler=self.journal_handler, json=json)
 
             # Dev analysis
-            event = journal_v1.message.event
-            if event in journal_events:
-                journal_events[event] += 1
-            else:
-                journal_events[event] = 1
-
-            # Dev analysis
-            event = journal_v1.message.event
-            station = journal_v1.message.station_name
-            if (event == "Docked" or event == "Location") and station:
-                station_type = journal_v1.message.station_type or "None"
-                if station_type in station_types:
-                    station_types[station_type] += 1
-                else:
-                    station_types[station_type] = 1
-
+            jv1_message : Message = journal_v1.message
+            self._update_dev_analysis_journal_events(jv1_message)
+            self._update_dev_analysis_station_types(jv1_message)
+           
         # Dev analysis
-        if schema_name in received_schemas:
-            received_schemas[schema_name] += 1
-        else:
-            received_schemas[schema_name] = 1
+        self._update_dev_analysis_received_schemas(schema_name)
 
         # Print after print_counter messages parsed
         if self.print_counter <= 0:
             self.print_counter = self.__print_wait
-            print(print_handler.get_highest_trade_diffs_str())
+            print(self.get_highest_trade_diffs_str())
             sys.stdout.flush()
         else:
             self.print_counter -= 1
@@ -123,7 +89,6 @@ class Slurper:
             commodity_storage.save(update_handler.stock_summary)
 
         return commodity_v3
-
 
     def handle_journal_v1(self, update_handler: JournalHandler, json: dict) -> JournalV1:
         journal_v1 = self.journal_v1_schema.load(json)
@@ -140,6 +105,45 @@ class Slurper:
                 journal_storage.save(update_handler.journal)
 
         return journal_v1
+
+    # The dev analysis below is probably temporary
+    # Just gathering stats that might be relevant for development
+
+    def _setup_dev_analysis(self):
+        self._received_schemas = {}
+        self._journal_events = {}
+        self._station_types = {}
+    
+    def _update_dev_analysis_journal_events(self, message: Message):
+        event = message.event
+        if event in self._journal_events:
+            self._journal_events[event] += 1
+        else:
+            self._journal_events[event] = 1
+
+    def _update_dev_analysis_station_types(self, message: Message):
+        event = message.event
+        station = message.station_name
+        if (event == "Docked" or event == "Location") and station:
+            station_type = message.station_type or "None"
+            if station_type in self._station_types:
+                self._station_types[station_type] += 1
+            else:
+                self._station_types[station_type] = 1
+
+    def _update_dev_analysis_received_schemas(self, schema_name: str):
+        if schema_name in self._received_schemas:
+            self._received_schemas[schema_name] += 1
+        else:
+            self._received_schemas[schema_name] = 1
+
+    def get_dev_analysis(self) -> dict:
+        return {
+            "received_schemas": self._received_schemas,
+            "journal_events": self._journal_events,
+            "station_types": self._station_types,
+        }
+
 
 
 def main() -> None:
