@@ -10,6 +10,14 @@ from summary.model import CostSnapshot, StockSummary
 
 
 class Output:
+    __station_highlights = {
+        "Outpost": "M",
+        "AsteroidBase": "A",
+        "CraterOutpost": "P",
+        "CraterPort": "P",
+        "OnFootSettlement": "O",
+        "FleetCarrier": "F",
+    }
     def __init__(self, target: StockSummary):
         self.commodity_summary = target
 
@@ -31,7 +39,7 @@ class Output:
         print_time = datetime.now().astimezone()
         print_time = print_time.replace(microsecond=0)
 
-        print(f"-{f'- {print_time.isoformat()} -':=^98}-", file=ret_io)
+        print(f"-{f'- {print_time.isoformat()} -':=^104}-", file=ret_io)
         for key in top_five_keys:
             commodity: Commodity = best_trades[key]
             top_buy_from: CostSnapshot = commodity.best_buys[0]
@@ -44,14 +52,15 @@ class Output:
             for buy_from in commodity.best_buys[::-1]:
                 buy_age = relativedelta(print_time, parse(buy_from.timestamp))
                 distance: float = get_trade_distance(buy_from, top_sell_to)
+                station_highlight = self.__station_highlights.get(buy_from.station_type, " ")
                 print(
                     f"Buy  @{buy_from.buy_price:7d}"
                     f" <  {buy_from.system_name: >26}"
                     f" {buy_from.station_name[:24]: >24}"
-                    # f" {buy_from.station_type: >8}"
+                    f" {station_highlight}"
                     f" {distance:6.2f} ly"
                     f" {buy_from.dist_from_star_ls or 0:9.2f} ls"
-                    f"{f' {buy_age.days}d' if buy_age.days else '   '}"
+                    f"{f' {buy_age.days:2d}d' if buy_age.days else '    '}"
                     f" {buy_age.hours:02d}:{buy_age.minutes:02d}:{buy_age.seconds:02d}"
                     ,
                     file=ret_io,
@@ -60,19 +69,20 @@ class Output:
             for sell_to in commodity.best_sales:
                 sell_age = relativedelta(print_time, parse(sell_to.timestamp))
                 distance: float = get_trade_distance(top_buy_from, sell_to)
+                station_highlight = self.__station_highlights.get(buy_from.station_type, " ")
                 print(
                     f"Sell @{sell_to.sell_price:7d}"
                     f"  > {sell_to.system_name: >26}"
                     f" {sell_to.station_name[:24]: >24}"
-                    # f" {sell_to.station_type: >8}"
+                    f" {station_highlight}"
                     f" {distance:6.2f} ly"
                     f" {sell_to.dist_from_star_ls or 0:9.2f} ls"
-                    f"{f' {sell_age.days}d' if sell_age.days else '   '}"
+                    f"{f' {sell_age.days:2d}d' if sell_age.days else '    '}"
                     f" {sell_age.hours:02d}:{sell_age.minutes:02d}:{sell_age.seconds:02d}"
                     ,
                     file=ret_io,
                 )
-            print("-" * 100, file=ret_io)
+            print("-" * 106, file=ret_io)
 
         return ret_io.getvalue()
 

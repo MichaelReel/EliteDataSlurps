@@ -25,6 +25,7 @@ class SummaryHandler:
         "Outpost",
         "AsteroidBase",
         "MegaShip",
+        "Bernal",
         # "CraterOutpost", # Planetary
         # "CraterPort", # Planetary
         # "OnFootSettlement", # Odessey
