@@ -1,3 +1,10 @@
+# Main
+
 zmq
 marshmallow
 numpy
+
+# Dev
+
+# pytest (maybe soon)
+black

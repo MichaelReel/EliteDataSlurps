@@ -114,7 +114,7 @@ class SummaryHandler:
                 and buy.station_name == cost_snapshot.station_name
             ):
                 stock_commodity.best_buys.pop(i)
-        
+
         # No buyable price, so not for sale
         if cost_snapshot.buy_price == 0:
             return
@@ -145,7 +145,7 @@ class SummaryHandler:
                 and sale.station_name == cost_snapshot.station_name
             ):
                 stock_commodity.best_sales.pop(i)
-        
+
         # No sellable price, so not wanted
         if cost_snapshot.sell_price == 0:
             return
