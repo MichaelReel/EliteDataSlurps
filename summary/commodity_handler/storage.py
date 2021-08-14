@@ -19,4 +19,4 @@ def load() -> StockSummary:
 def save(summary: StockSummary):
     with open(__stock_file, "w") as json_file:
         data = StockSummarySchema().dump(summary)
-        json.dump(data, json_file)
+        json.dump(obj=data, fp=json_file, indent=4)
