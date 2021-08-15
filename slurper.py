@@ -64,7 +64,7 @@ class Slurper:
             self._handle_journal_v1(json=json)
 
         self._print_on_messages_counted()
-    
+
     def _print_on_messages_counted(self):
         """Print after `_print_wait` messages received"""
         if self.print_counter <= 0:
@@ -162,7 +162,7 @@ def main() -> None:
     print("Listening!")
     listener.start()
     print("Closing listener...")
-    
+
     print("Saving current stock history...")
     commodity_storage.save(stock_file=config.stock_file_path, summary=commodity_summary)
 
