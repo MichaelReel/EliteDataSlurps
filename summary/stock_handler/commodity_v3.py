@@ -15,29 +15,11 @@ from summary.model import Commodity as StockCommodity, CostSnapshot, StockSummar
 
 
 class StockHandler:
-    __max_best = 5
-    __min_stock = 500
-    __min_demand = 1
-    __acceptable_station_types = [
-        "Ocellus",
-        "Coriolis",
-        "Orbis",
-        "Outpost",
-        "AsteroidBase",
-        "MegaShip",
-        "Bernal",
-        # "CraterOutpost", # Planetary
-        # "CraterPort", # Planetary
-        # "OnFootSettlement", # Odessey
-        # "FleetCarrier", # Ephemeral
-    ]
-    __origin = numpy.array([0.0, 0.0, 0.0])
-    __max_from_origin = 500
-
     def __init__(
         self, config: StockConfig, target: StockSummary, dock_handler: DockHandler
     ) -> None:
         self.config = config
+        self._origin = numpy.array(self.config.origin_coords)
         self.stock_summary = target
         self.dock_handler = dock_handler
         self.commodity_index = {}
@@ -84,10 +66,10 @@ class StockHandler:
         ):
             station_type = journal_dock.station_type
             coords = numpy.array(journal_dock.star_pos)
-            dist_from_origin = numpy.linalg.norm(coords - self.__origin)
+            dist_from_origin = numpy.linalg.norm(coords - self._origin)
             if (
-                station_type in self.__acceptable_station_types
-                and dist_from_origin <= self.__max_from_origin
+                station_type in self.config.acceptable_station_types
+                and dist_from_origin <= self.config.max_from_origin
             ):
                 cost_snapshot = CostSnapshot(
                     system_name=system,
@@ -123,7 +105,7 @@ class StockHandler:
             return
 
         # Check supply, ignore if too low
-        if cost_snapshot.stock < self.__min_stock:
+        if cost_snapshot.stock < self.config.min_stock:
             return
 
         # Put lowest prices first
@@ -135,7 +117,7 @@ class StockHandler:
         stock_commodity.best_buys.insert(i, cost_snapshot)
 
         # Trim excess results
-        stock_commodity.best_buys = stock_commodity.best_buys[: self.__max_best]
+        stock_commodity.best_buys = stock_commodity.best_buys[: self.config.max_best]
 
     def _insert_sell(
         self, stock_commodity: StockCommodity, cost_snapshot: CostSnapshot
@@ -154,7 +136,7 @@ class StockHandler:
             return
 
         # Check demand, ignore if too low
-        if cost_snapshot.demand < self.__min_demand:
+        if cost_snapshot.demand < self.config.min_demand:
             return
 
         # Put highest prices first
@@ -165,4 +147,4 @@ class StockHandler:
             i += 1
         stock_commodity.best_sales.insert(i, cost_snapshot)
         # Trim excess results
-        stock_commodity.best_sales = stock_commodity.best_sales[: self.__max_best]
+        stock_commodity.best_sales = stock_commodity.best_sales[: self.config.max_best]

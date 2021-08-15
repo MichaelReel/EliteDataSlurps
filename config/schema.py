@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields, EXCLUDE, post_load
+from marshmallow.validate import Length
 
 from config.model import Config, DockConfig, StockConfig
 
@@ -20,6 +21,14 @@ class DockConfigSchema(BaseSchema):
 class StockConfigSchema(BaseSchema):
     file_path = fields.String(required=True)
     autosave_wait = fields.Integer(required=True)
+    max_best = fields.Integer(required=True)
+    min_stock = fields.Integer(required=True)
+    min_demand = fields.Integer(required=True)
+    acceptable_station_types = fields.List(fields.String(), required=True)
+    origin_coords = fields.List(
+        fields.Float(), validate=Length(min=3, max=3), required=True
+    )
+    max_from_origin = fields.Float(required=True)
 
     @post_load
     def to_domain(self, data, **kwargs) -> StockConfig:

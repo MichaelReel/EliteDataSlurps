@@ -9,13 +9,14 @@
 
 ### Really basic (and probably wrong/incomplete) instructions:
 
-Install python3 and make sure it's on your PATH if you don't have it already.
+Install python3 and pip3 and make sure they're on your PATH if you don't have them already.
 
 get requirements:
-`pip install -r requirements.txt`
+
+> `pip install -r requirements.txt`
 
 run slurper:
-`python3 slurper.py`
+> `python3 slurper.py`
 
 ### Basic tips for running the current code:
 

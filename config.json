@@ -2,12 +2,30 @@
     "eddn_relay_url": "tcp://eddn.edcd.io:9500",
     "eddn_timeout": 60000,
     "cmd_line_print_wait": 20,
-    "stock": {
-        "file_path": "stockfile.json",
-        "autosave_wait": 5
-    },
     "dock": {
         "file_path": "dockfile.json",
         "autosave_wait": 5
+    },
+    "stock": {
+        "file_path": "stockfile.json",
+        "autosave_wait": 5,
+        "max_best": 5,
+        "min_stock": 500,
+        "min_demand": 1,
+        "acceptable_station_types": [
+            "Ocellus",
+            "Coriolis",
+            "Orbis",
+            "Outpost",
+            "AsteroidBase",
+            "MegaShip",
+            "Bernal",
+            "_not_CraterOutpost", 
+            "_not_CraterPort",
+            "_not_OnFootSettlement",
+            "_not_FleetCarrier"
+        ],
+        "origin_coords": [0.0, 0.0, 0.0],
+        "max_from_origin": 500.0
     }
 }

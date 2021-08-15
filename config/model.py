@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import List
 
 
 @dataclass
@@ -11,6 +12,12 @@ class DockConfig:
 class StockConfig:
     file_path: str
     autosave_wait: int
+    max_best: int
+    min_stock: int
+    min_demand: int
+    acceptable_station_types: List[str]
+    origin_coords: List[float]
+    max_from_origin: float
 
 
 @dataclass
