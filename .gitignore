@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # Keep stockfile out of the repo, at least for now
-stockfile.json
+stockfile*.json
 
 # No good reason to keep dockfile updates in the repo
-dockfile.json
+dockfile*.json

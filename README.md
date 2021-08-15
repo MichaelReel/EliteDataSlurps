@@ -38,3 +38,10 @@ run slurper:
   - The output only includes the top 5 commodities and the top 5 buys and top 5 sells in each.
   - The top best buys are in ascending (to best) order and the top best sales are in descending (from best) order - this means the best trades are in the MIDDLE rows of each section.
   - Recommended to run the [EDMarketConnector](https://github.com/EDCD/EDMarketConnector/wiki) when playing Elite so that you can keep your own slurper data up to date.
+
+### Advanced tips for running the current code:
+
+  - If you want to use a different configuration, there is a `--config` option that allows setting an alternative configuration file to the default `config.json`.
+  - It is recommended that you use this for custom configurations to prevent your changes becoming a merge conflict when updating the repository.
+  - While this **could** be use to run multiple instances from the same git repository folder, it would be upon the user to make sure that the configurations **DO NOT** share dock or stock `json` files.
+  - An example alternative config `config_L.json` has been included as an alternative config for large ships. Use the follow command to make use of this config: `python3 slurper.py --config config_L.json`.
