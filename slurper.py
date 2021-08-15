@@ -22,8 +22,12 @@ __print_wait = 20  # Print per messages parsed
 
 
 class Slurper:
-
-    def __init__(self, journal_summary: DockSummary, commodity_summary: StockSummary, print_wait: int):
+    def __init__(
+        self,
+        journal_summary: DockSummary,
+        commodity_summary: StockSummary,
+        print_wait: int,
+    ):
 
         self.journal_handler = JournalHandler(target=journal_summary)
         self.commodity_handler = SummaryHandler(
@@ -33,44 +37,30 @@ class Slurper:
         self.__print_wait = print_wait
         self.print_counter = self.__print_wait
 
-        print(f"Journal loaded with {len(journal_summary.stations)} stations")
-        print(f"Stock list loaded with {len(commodity_summary.commodities)} commodities")
-        
+        print(
+            f"Journal loaded with {len(journal_summary.stations)} stations\n"
+            f"Stock list loaded with {len(commodity_summary.commodities)} commodities"
+        )
+
         self.commodity_v3_schema = CommodityV3Schema()
         self.journal_v1_schema = JournalV1Schema()
-        
         self._setup_dev_analysis()
-
-    def message_callback(self, message: str) -> None:
-        self.handle_eddn_message(
-            message,
-        )
 
     def get_highest_trade_diffs_str(self) -> str:
         return self.print_handler.get_highest_trade_diffs_str()
 
-    def handle_eddn_message(
-        self,
-        message,
-    ):
+    def handle_eddn_message(self, message: str) -> None:
         message = zlib.decompress(message)
         json = simplejson.loads(message)
 
         # Handle schemas
         schema_name = json["$schemaRef"]
-        if schema_name == "https://eddn.edcd.io/schemas/commodity/3":
-            self.handle_commodity_v3(update_handler=self.commodity_handler, json=json)
-
-        if schema_name == "https://eddn.edcd.io/schemas/journal/1":
-            journal_v1 = self.handle_journal_v1(update_handler=self.journal_handler, json=json)
-
-            # Dev analysis
-            jv1_message : Message = journal_v1.message
-            self._update_dev_analysis_journal_events(jv1_message)
-            self._update_dev_analysis_station_types(jv1_message)
-           
-        # Dev analysis
         self._update_dev_analysis_received_schemas(schema_name)
+
+        if schema_name == "https://eddn.edcd.io/schemas/commodity/3":
+            self._handle_commodity_v3(update_handler=self.commodity_handler, json=json)
+        if schema_name == "https://eddn.edcd.io/schemas/journal/1":
+            self._handle_journal_v1(update_handler=self.journal_handler, json=json)
 
         # Print after print_counter messages parsed
         if self.print_counter <= 0:
@@ -80,56 +70,54 @@ class Slurper:
         else:
             self.print_counter -= 1
 
-
-    def handle_commodity_v3(self, update_handler: SummaryHandler, json: dict) -> CommodityV3:
+    def _handle_commodity_v3(
+        self, update_handler: SummaryHandler, json: dict
+    ) -> CommodityV3:
         commodity_v3 = self.commodity_v3_schema.load(json)
         time_to_save = update_handler.update(commodity_v3)
-
         if time_to_save:
             commodity_storage.save(update_handler.stock_summary)
-
         return commodity_v3
 
-    def handle_journal_v1(self, update_handler: JournalHandler, json: dict) -> JournalV1:
+    def _handle_journal_v1(
+        self, update_handler: JournalHandler, json: dict
+    ) -> JournalV1:
         journal_v1 = self.journal_v1_schema.load(json)
 
         event = journal_v1.message.event
         station = journal_v1.message.station_name
+        station_type = journal_v1.message.station_type or "None"
+        self._update_dev_analysis_journal_events(event=event)
 
         # We only care about ships docking or reporting location at a dock
         if (event == "Docked" or event == "Location") and station:
+            self._update_dev_analysis_station_types(station_type=station_type)
 
             time_to_save = update_handler.update(journal_v1)
-
             if time_to_save:
                 journal_storage.save(update_handler.journal)
 
         return journal_v1
 
-    # The dev analysis below is probably temporary
+    # The dev analysis methods below are probably temporary
     # Just gathering stats that might be relevant for development
 
     def _setup_dev_analysis(self):
         self._received_schemas = {}
         self._journal_events = {}
         self._station_types = {}
-    
-    def _update_dev_analysis_journal_events(self, message: Message):
-        event = message.event
+
+    def _update_dev_analysis_journal_events(self, event: str):
         if event in self._journal_events:
             self._journal_events[event] += 1
         else:
             self._journal_events[event] = 1
 
-    def _update_dev_analysis_station_types(self, message: Message):
-        event = message.event
-        station = message.station_name
-        if (event == "Docked" or event == "Location") and station:
-            station_type = message.station_type or "None"
-            if station_type in self._station_types:
-                self._station_types[station_type] += 1
-            else:
-                self._station_types[station_type] = 1
+    def _update_dev_analysis_station_types(self, station_type: str):
+        if station_type in self._station_types:
+            self._station_types[station_type] += 1
+        else:
+            self._station_types[station_type] = 1
 
     def _update_dev_analysis_received_schemas(self, schema_name: str):
         if schema_name in self._received_schemas:
@@ -145,7 +133,6 @@ class Slurper:
         }
 
 
-
 def main() -> None:
 
     print("Loading last saved dock descriptions...")
@@ -154,11 +141,17 @@ def main() -> None:
     commodity_summary = commodity_storage.load()
 
     print("Setting up network listener...")
-    slurper = Slurper(journal_summary=journal_summary, commodity_summary=commodity_summary, print_wait=__print_wait)
-    listener = EddnListener(url=__relayEDDN, timeout=__timeoutEDDN, callback=slurper.message_callback)
+    slurper = Slurper(
+        journal_summary=journal_summary,
+        commodity_summary=commodity_summary,
+        print_wait=__print_wait,
+    )
+    listener = EddnListener(
+        url=__relayEDDN, timeout=__timeoutEDDN, callback=slurper.handle_eddn_message
+    )
     signal.signal(signal.SIGINT, listener.stop)
 
-    print("Listening!")    
+    print("Listening!")
     listener.start()
 
     print("Closing listener...")

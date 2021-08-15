@@ -4,8 +4,8 @@ import zmq
 
 from typing import Callable
 
-class EddnListener:
 
+class EddnListener:
     def __init__(self, url: str, timeout: int, callback: Callable[[str], None] = None):
         self.url = url
         self.timeout = timeout
@@ -18,7 +18,7 @@ class EddnListener:
 
         self._subscriber.setsockopt(zmq.SUBSCRIBE, b"")
         self._subscriber.setsockopt(zmq.RCVTIMEO, self.timeout)
-    
+
     def _connection_loop(self):
         while self._continue:
             try:
@@ -45,4 +45,3 @@ class EddnListener:
 
     def stop(self, sig, frame) -> None:
         self._continue = False
-    
