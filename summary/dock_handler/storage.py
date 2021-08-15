@@ -1,6 +1,5 @@
 import json
 
-from config.model import Config
 from summary.model import DockSummary
 from summary.schema import DockSummarySchema
 

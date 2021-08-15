@@ -8,7 +8,7 @@ from config import config
 from eddn.commodity_v3.model import CommodityV3
 from eddn.commodity_v3.schema import CommodityV3Schema
 from eddn.connection.eddn import EddnListener
-from eddn.journal_v1.model import JournalV1, Message
+from eddn.journal_v1.model import JournalV1
 from eddn.journal_v1.schema import JournalV1Schema
 from summary.stock_handler import storage as commodity_storage
 from summary.stock_handler.commodity_v3 import StockHandler

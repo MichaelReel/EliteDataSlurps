@@ -1,4 +1,3 @@
-from config.model import CmdLineConfig
 import io
 import numpy
 
@@ -6,6 +5,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
 
+from config.model import CmdLineConfig
 from eddn.commodity_v3.model import Commodity
 from summary.model import CostSnapshot, StockSummary
 
