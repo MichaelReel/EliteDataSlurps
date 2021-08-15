@@ -1,15 +1,15 @@
 from typing import Optional
 
+from config.model import DockConfig
 from eddn.journal_v1.model import JournalV1 as EddnJournalV1
 from summary.model import DockSummary, Station
 
 
 class JournalHandler:
-    __autosave_wait = 5
-
-    def __init__(self, target: DockSummary) -> None:
+    def __init__(self, config: DockConfig, target: DockSummary) -> None:
+        self.config = config
         self.journal = target
-        self.save_counter = self.__autosave_wait
+        self.save_counter = self.config.autosave_wait
 
     def update(self, journal_v1: EddnJournalV1) -> bool:
         """Updates the summary and returns true if it's time to save"""
@@ -27,7 +27,7 @@ class JournalHandler:
             self._set_dock_entry(system=system, station=station, journal_v1=journal_v1)
 
         if self.save_counter <= 0:
-            self.save_counter = self.__autosave_wait
+            self.save_counter = self.config.autosave_wait
             return True
         else:
             self.save_counter -= 1

@@ -4,6 +4,7 @@ from bisect import insort_left, insort_right
 from summary import journal_handler
 from typing import Optional
 
+from config.model import StockConfig
 from eddn.commodity_v3.model import (
     Commodity as EddnCommodity,
     CommodityV3 as EddnCommodityV3,
@@ -17,7 +18,6 @@ class SummaryHandler:
     __max_best = 5
     __min_stock = 500
     __min_demand = 1
-    __autosave_wait = 5
     __acceptable_station_types = [
         "Ocellus",
         "Coriolis",
@@ -34,12 +34,15 @@ class SummaryHandler:
     __origin = numpy.array([0.0, 0.0, 0.0])
     __max_from_origin = 500
 
-    def __init__(self, target: StockSummary, journal_handler: JournalHandler) -> None:
+    def __init__(
+        self, config: StockConfig, target: StockSummary, journal_handler: JournalHandler
+    ) -> None:
+        self.config = config
         self.stock_summary = target
         self.journal_handler = journal_handler
         self.commodity_index = {}
         self._create_commodity_index()
-        self.save_counter = self.__autosave_wait
+        self.save_counter = self.config.autosave_wait
 
     def _create_commodity_index(self) -> None:
         """
@@ -64,7 +67,7 @@ class SummaryHandler:
             self._update_commodity_summary(eddn_commodity, commodity_v3.message)
 
         if self.save_counter <= 0:
-            self.save_counter = self.__autosave_wait
+            self.save_counter = self.config.autosave_wait
             return True
         else:
             self.save_counter -= 1

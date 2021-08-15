@@ -2,6 +2,12 @@
     "eddn_relay_url": "tcp://eddn.edcd.io:9500",
     "eddn_timeout": 60000,
     "cmd_line_print_wait": 20,
-    "stock_file_path": "stockfile.json",
-    "dock_file_path": "dockfile.json"
+    "stock": {
+        "file_path": "stockfile.json",
+        "autosave_wait": 5
+    },
+    "dock": {
+        "file_path": "dockfile.json",
+        "autosave_wait": 5
+    }
 }

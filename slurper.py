@@ -26,9 +26,13 @@ class Slurper:
         print_wait: int,
     ):
 
-        self.journal_handler = JournalHandler(target=journal_summary)
+        self.journal_handler = JournalHandler(
+            config=config.dock, target=journal_summary
+        )
         self.commodity_handler = SummaryHandler(
-            target=commodity_summary, journal_handler=self.journal_handler
+            config=config.stock,
+            target=commodity_summary,
+            journal_handler=self.journal_handler,
         )
         self.print_handler = CmdLineOutput(commodity_summary)
         self._print_wait = print_wait
@@ -79,7 +83,7 @@ class Slurper:
         time_to_save = self.commodity_handler.update(commodity_v3)
         if time_to_save:
             commodity_storage.save(
-                stock_file=config.stock_file_path,
+                stock_file=config.stock.file_path,
                 summary=self.commodity_handler.stock_summary,
             )
         return commodity_v3
@@ -98,7 +102,7 @@ class Slurper:
             time_to_save = self.journal_handler.update(journal_v1)
             if time_to_save:
                 journal_storage.save(
-                    dock_file=config.dock_file_path,
+                    dock_file=config.dock.file_path,
                     summary=self.journal_handler.journal,
                 )
 
@@ -141,10 +145,10 @@ class Slurper:
 def main() -> None:
 
     print("Loading last saved dock descriptions...")
-    journal_summary = journal_storage.load(dock_file=config.dock_file_path)
+    journal_summary = journal_storage.load(dock_file=config.dock.file_path)
 
     print("Loading last saved stock history...")
-    commodity_summary = commodity_storage.load(stock_file=config.stock_file_path)
+    commodity_summary = commodity_storage.load(stock_file=config.stock.file_path)
 
     print("Setting up network listener...")
     slurper = Slurper(
@@ -164,10 +168,10 @@ def main() -> None:
     print("Closing listener...")
 
     print("Saving current stock history...")
-    commodity_storage.save(stock_file=config.stock_file_path, summary=commodity_summary)
+    commodity_storage.save(stock_file=config.stock.file_path, summary=commodity_summary)
 
     print("Saving current dock descriptions...")
-    journal_storage.save(dock_file=config.dock_file_path, summary=journal_summary)
+    journal_storage.save(dock_file=config.dock.file_path, summary=journal_summary)
 
     print(slurper.get_dev_analysis())
 
