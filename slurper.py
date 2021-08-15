@@ -10,10 +10,10 @@ from eddn.commodity_v3.schema import CommodityV3Schema
 from eddn.connection.eddn import EddnListener
 from eddn.journal_v1.model import JournalV1, Message
 from eddn.journal_v1.schema import JournalV1Schema
-from summary.commodity_handler import storage as commodity_storage
-from summary.commodity_handler.commodity_v3 import SummaryHandler
-from summary.journal_handler import storage as journal_storage
-from summary.journal_handler.journal_v1 import JournalHandler
+from summary.stock_handler import storage as commodity_storage
+from summary.stock_handler.commodity_v3 import StockHandler
+from summary.dock_handler import storage as journal_storage
+from summary.dock_handler.journal_v1 import DockHandler
 from summary.model import DockSummary, StockSummary
 from summary.output_handler.cmd_line import Output as CmdLineOutput
 
@@ -26,13 +26,11 @@ class Slurper:
         print_wait: int,
     ):
 
-        self.journal_handler = JournalHandler(
-            config=config.dock, target=journal_summary
-        )
-        self.commodity_handler = SummaryHandler(
+        self.dock_handler = DockHandler(config=config.dock, target=journal_summary)
+        self.stock_handler = StockHandler(
             config=config.stock,
             target=commodity_summary,
-            journal_handler=self.journal_handler,
+            dock_handler=self.dock_handler,
         )
         self.print_handler = CmdLineOutput(commodity_summary)
         self._print_wait = print_wait
@@ -80,11 +78,11 @@ class Slurper:
 
     def _handle_commodity_v3(self, json: dict) -> CommodityV3:
         commodity_v3 = self.commodity_v3_schema.load(json)
-        time_to_save = self.commodity_handler.update(commodity_v3)
+        time_to_save = self.stock_handler.update(commodity_v3)
         if time_to_save:
             commodity_storage.save(
                 stock_file=config.stock.file_path,
-                summary=self.commodity_handler.stock_summary,
+                summary=self.stock_handler.stock_summary,
             )
         return commodity_v3
 
@@ -99,11 +97,11 @@ class Slurper:
         if (event == "Docked" or event == "Location") and station:
             self._update_dev_analysis_station_types(station_type=station_type)
 
-            time_to_save = self.journal_handler.update(journal_v1)
+            time_to_save = self.dock_handler.update(journal_v1)
             if time_to_save:
                 journal_storage.save(
                     dock_file=config.dock.file_path,
-                    summary=self.journal_handler.journal,
+                    summary=self.dock_handler.journal,
                 )
 
         return journal_v1

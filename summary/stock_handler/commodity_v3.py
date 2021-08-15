@@ -1,7 +1,7 @@
 import numpy
 
 from bisect import insort_left, insort_right
-from summary import journal_handler
+from summary import dock_handler
 from typing import Optional
 
 from config.model import StockConfig
@@ -10,11 +10,11 @@ from eddn.commodity_v3.model import (
     CommodityV3 as EddnCommodityV3,
     Message,
 )
-from summary.journal_handler.journal_v1 import JournalHandler
+from summary.dock_handler.journal_v1 import DockHandler
 from summary.model import Commodity as StockCommodity, CostSnapshot, StockSummary
 
 
-class SummaryHandler:
+class StockHandler:
     __max_best = 5
     __min_stock = 500
     __min_demand = 1
@@ -35,11 +35,11 @@ class SummaryHandler:
     __max_from_origin = 500
 
     def __init__(
-        self, config: StockConfig, target: StockSummary, journal_handler: JournalHandler
+        self, config: StockConfig, target: StockSummary, dock_handler: DockHandler
     ) -> None:
         self.config = config
         self.stock_summary = target
-        self.journal_handler = journal_handler
+        self.dock_handler = dock_handler
         self.commodity_index = {}
         self._create_commodity_index()
         self.save_counter = self.config.autosave_wait
@@ -79,7 +79,7 @@ class SummaryHandler:
         stock_commodity: StockCommodity = self._get_stock_commodity(eddn_commodity.name)
         system = message.system_name
         station = message.station_name
-        if journal_dock := self.journal_handler.get_dock_entry(
+        if journal_dock := self.dock_handler.get_dock_entry(
             system=system, station=station
         ):
             station_type = journal_dock.station_type

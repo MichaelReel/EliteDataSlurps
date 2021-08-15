@@ -5,7 +5,7 @@ from eddn.journal_v1.model import JournalV1 as EddnJournalV1
 from summary.model import DockSummary, Station
 
 
-class JournalHandler:
+class DockHandler:
     def __init__(self, config: DockConfig, target: DockSummary) -> None:
         self.config = config
         self.journal = target
