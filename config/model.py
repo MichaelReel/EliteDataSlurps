@@ -1,5 +1,11 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import Dict, List
+
+
+@dataclass
+class CmdLineConfig:
+    print_wait: int
+    station_highlights: Dict[str, str]
 
 
 @dataclass
@@ -24,6 +30,6 @@ class StockConfig:
 class Config:
     eddn_relay_url: str
     eddn_timeout: int
-    cmd_line_print_wait: int
+    cmd_line: CmdLineConfig
     dock: DockConfig
     stock: StockConfig

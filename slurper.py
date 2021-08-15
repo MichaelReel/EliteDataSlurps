@@ -32,7 +32,7 @@ class Slurper:
             target=commodity_summary,
             dock_handler=self.dock_handler,
         )
-        self.print_handler = CmdLineOutput(commodity_summary)
+        self.print_handler = CmdLineOutput(config.cmd_line, commodity_summary)
         self._print_wait = print_wait
         self.print_counter = self._print_wait
 
@@ -152,7 +152,7 @@ def main() -> None:
     slurper = Slurper(
         journal_summary=journal_summary,
         commodity_summary=commodity_summary,
-        print_wait=config.cmd_line_print_wait,
+        print_wait=config.cmd_line.print_wait,
     )
     listener = EddnListener(
         url=config.eddn_relay_url,

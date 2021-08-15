@@ -1,7 +1,6 @@
 {
     "eddn_relay_url": "tcp://eddn.edcd.io:9500",
     "eddn_timeout": 60000,
-    "cmd_line_print_wait": 20,
     "dock": {
         "file_path": "dockfile.json",
         "autosave_wait": 5
@@ -27,5 +26,16 @@
         ],
         "origin_coords": [0.0, 0.0, 0.0],
         "max_from_origin": 500.0
+    },
+    "cmd_line": {
+        "print_wait": 20,
+        "station_highlights": {
+            "outpost": "M",
+            "asteroidbase": "A",
+            "crateroutpost": "P",
+            "craterport": "P",
+            "onfootsettlement": "O",
+            "fleetcarrier": "F"
+        }
     }
 }

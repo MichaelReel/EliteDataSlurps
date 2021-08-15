@@ -1,3 +1,4 @@
+from config.model import CmdLineConfig
 import io
 import numpy
 
@@ -10,16 +11,8 @@ from summary.model import CostSnapshot, StockSummary
 
 
 class Output:
-    __station_highlights = {
-        "Outpost".lower(): "M",
-        "AsteroidBase".lower(): "A",
-        "CraterOutpost".lower(): "P",
-        "CraterPort".lower(): "P",
-        "OnFootSettlement".lower(): "O",
-        "FleetCarrier".lower(): "F",
-    }
-
-    def __init__(self, target: StockSummary):
+    def __init__(self, config: CmdLineConfig, target: StockSummary):
+        self.config = config
         self.commodity_summary = target
 
     def get_highest_trade_diffs_str(self) -> str:
@@ -53,7 +46,7 @@ class Output:
             for buy_from in commodity.best_buys[::-1]:
                 buy_age = relativedelta(print_time, parse(buy_from.timestamp))
                 distance: float = get_trade_distance(buy_from, top_sell_to)
-                station_highlight = self.__station_highlights.get(
+                station_highlight = self.config.station_highlights.get(
                     buy_from.station_type.lower(), " "
                 )
                 print(
@@ -71,7 +64,7 @@ class Output:
             for sell_to in commodity.best_sales:
                 sell_age = relativedelta(print_time, parse(sell_to.timestamp))
                 distance: float = get_trade_distance(top_buy_from, sell_to)
-                station_highlight = self.__station_highlights.get(
+                station_highlight = self.config.station_highlights.get(
                     sell_to.station_type.lower(), " "
                 )
                 print(

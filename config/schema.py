@@ -1,12 +1,21 @@
 from marshmallow import Schema, fields, EXCLUDE, post_load
 from marshmallow.validate import Length
 
-from config.model import Config, DockConfig, StockConfig
+from config.model import Config, DockConfig, StockConfig, CmdLineConfig
 
 
 class BaseSchema(Schema):
     class Meta:
         unknown = EXCLUDE
+
+
+class CmdLineConfigSchema(BaseSchema):
+    print_wait = fields.Integer(required=True)
+    station_highlights = fields.Dict(fields.String(), fields.String(), required=True)
+
+    @post_load
+    def to_domain(self, data, **kwargs) -> CmdLineConfig:
+        return CmdLineConfig(**data)
 
 
 class DockConfigSchema(BaseSchema):
@@ -38,7 +47,7 @@ class StockConfigSchema(BaseSchema):
 class ConfigSchema(BaseSchema):
     eddn_relay_url = fields.String(required=True)
     eddn_timeout = fields.Integer(required=True)
-    cmd_line_print_wait = fields.Integer(required=True)
+    cmd_line = fields.Nested(CmdLineConfigSchema, required=True)
     dock = fields.Nested(DockConfigSchema, required=True)
     stock = fields.Nested(StockConfigSchema, required=True)
 
