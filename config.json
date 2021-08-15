@@ -1,5 +1,5 @@
 {
     "eddn_relay_url": "tcp://eddn.edcd.io:9500",
-    "cmd_line_print_wait": 20,
-    "eddn_timeout": 60000
+    "eddn_timeout": 60000,
+    "cmd_line_print_wait": 20
 }

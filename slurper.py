@@ -4,7 +4,6 @@ import sys
 import zlib
 
 from config import config
-from config.storage import save as save_config
 from eddn.commodity_v3.model import CommodityV3
 from eddn.commodity_v3.schema import CommodityV3Schema
 from eddn.connection.eddn import EddnListener
@@ -160,9 +159,6 @@ def main() -> None:
     journal_storage.save(journal_summary)
 
     print(slurper.get_dev_analysis())
-    print(slurper.get_highest_trade_diffs_str())
-
-    save_config(config)
 
 
 if __name__ == "__main__":

@@ -14,9 +14,3 @@ def load() -> Config:
             return ConfigSchema().load(data)
     except FileNotFoundError:
         return Config()
-
-
-def save(summary: Config):
-    with open(__stock_file, "w") as json_file:
-        data = ConfigSchema().dump(summary)
-        json.dump(obj=data, fp=json_file, indent=4)
