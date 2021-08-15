@@ -1,7 +1,8 @@
 import signal
 import simplejson
-import sys
 import zlib
+
+from sys import stdout
 
 from config import config
 from eddn.commodity_v3.model import CommodityV3
@@ -30,8 +31,8 @@ class Slurper:
             target=commodity_summary, journal_handler=self.journal_handler
         )
         self.print_handler = CmdLineOutput(commodity_summary)
-        self.__print_wait = print_wait
-        self.print_counter = self.__print_wait
+        self._print_wait = print_wait
+        self.print_counter = self._print_wait
 
         print(
             f"Journal loaded with {len(journal_summary.stations)} stations\n"
@@ -46,6 +47,10 @@ class Slurper:
         return self.print_handler.get_highest_trade_diffs_str()
 
     def handle_eddn_message(self, message: str) -> None:
+        """
+        This function is called by the EDDN listener for each message received.
+        This could be considered to be the main-loop
+        """
         message = zlib.decompress(message)
         json = simplejson.loads(message)
 
@@ -54,32 +59,33 @@ class Slurper:
         self._update_dev_analysis_received_schemas(schema_name)
 
         if schema_name == "https://eddn.edcd.io/schemas/commodity/3":
-            self._handle_commodity_v3(update_handler=self.commodity_handler, json=json)
+            self._handle_commodity_v3(json=json)
         if schema_name == "https://eddn.edcd.io/schemas/journal/1":
-            self._handle_journal_v1(update_handler=self.journal_handler, json=json)
+            self._handle_journal_v1(json=json)
 
-        # Print after print_counter messages parsed
+        self._print_on_messages_counted()
+    
+    def _print_on_messages_counted(self):
+        """Print after `_print_wait` messages received"""
         if self.print_counter <= 0:
-            self.print_counter = self.__print_wait
+            self.print_counter = self._print_wait
             print(self.get_highest_trade_diffs_str())
-            sys.stdout.flush()
+            stdout.flush()
         else:
             self.print_counter -= 1
 
-    def _handle_commodity_v3(
-        self, update_handler: SummaryHandler, json: dict
-    ) -> CommodityV3:
+    def _handle_commodity_v3(self, json: dict) -> CommodityV3:
         commodity_v3 = self.commodity_v3_schema.load(json)
-        time_to_save = update_handler.update(commodity_v3)
+        time_to_save = self.commodity_handler.update(commodity_v3)
         if time_to_save:
-            commodity_storage.save(update_handler.stock_summary)
+            commodity_storage.save(
+                stock_file=config.stock_file_path,
+                summary=self.commodity_handler.stock_summary,
+            )
         return commodity_v3
 
-    def _handle_journal_v1(
-        self, update_handler: JournalHandler, json: dict
-    ) -> JournalV1:
+    def _handle_journal_v1(self, json: dict) -> JournalV1:
         journal_v1 = self.journal_v1_schema.load(json)
-
         event = journal_v1.message.event
         station = journal_v1.message.station_name
         station_type = journal_v1.message.station_type or "None"
@@ -89,9 +95,12 @@ class Slurper:
         if (event == "Docked" or event == "Location") and station:
             self._update_dev_analysis_station_types(station_type=station_type)
 
-            time_to_save = update_handler.update(journal_v1)
+            time_to_save = self.journal_handler.update(journal_v1)
             if time_to_save:
-                journal_storage.save(update_handler.journal)
+                journal_storage.save(
+                    dock_file=config.dock_file_path,
+                    summary=self.journal_handler.journal,
+                )
 
         return journal_v1
 
@@ -132,9 +141,10 @@ class Slurper:
 def main() -> None:
 
     print("Loading last saved dock descriptions...")
-    journal_summary = journal_storage.load()
+    journal_summary = journal_storage.load(dock_file=config.dock_file_path)
+
     print("Loading last saved stock history...")
-    commodity_summary = commodity_storage.load()
+    commodity_summary = commodity_storage.load(stock_file=config.stock_file_path)
 
     print("Setting up network listener...")
     slurper = Slurper(
@@ -151,12 +161,13 @@ def main() -> None:
 
     print("Listening!")
     listener.start()
-
     print("Closing listener...")
+    
     print("Saving current stock history...")
-    commodity_storage.save(commodity_summary)
+    commodity_storage.save(stock_file=config.stock_file_path, summary=commodity_summary)
+
     print("Saving current dock descriptions...")
-    journal_storage.save(journal_summary)
+    journal_storage.save(dock_file=config.dock_file_path, summary=journal_summary)
 
     print(slurper.get_dev_analysis())
 
