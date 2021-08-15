@@ -3,6 +3,8 @@ import simplejson
 import sys
 import zlib
 
+from config import config
+from config.storage import save as save_config
 from eddn.commodity_v3.model import CommodityV3
 from eddn.commodity_v3.schema import CommodityV3Schema
 from eddn.connection.eddn import EddnListener
@@ -14,11 +16,6 @@ from summary.journal_handler import storage as journal_storage
 from summary.journal_handler.journal_v1 import JournalHandler
 from summary.model import DockSummary, StockSummary
 from summary.output_handler.cmd_line import Output as CmdLineOutput
-
-
-__relayEDDN = "tcp://eddn.edcd.io:9500"
-__timeoutEDDN = 600000
-__print_wait = 20  # Print per messages parsed
 
 
 class Slurper:
@@ -144,10 +141,12 @@ def main() -> None:
     slurper = Slurper(
         journal_summary=journal_summary,
         commodity_summary=commodity_summary,
-        print_wait=__print_wait,
+        print_wait=config.cmd_line_print_wait,
     )
     listener = EddnListener(
-        url=__relayEDDN, timeout=__timeoutEDDN, callback=slurper.handle_eddn_message
+        url=config.eddn_relay_url,
+        timeout=config.eddn_timeout,
+        callback=slurper.handle_eddn_message,
     )
     signal.signal(signal.SIGINT, listener.stop)
 
@@ -162,6 +161,8 @@ def main() -> None:
 
     print(slurper.get_dev_analysis())
     print(slurper.get_highest_trade_diffs_str())
+
+    save_config(config)
 
 
 if __name__ == "__main__":
