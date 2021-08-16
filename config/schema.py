@@ -38,6 +38,7 @@ class StockConfigSchema(BaseSchema):
         fields.Float(), validate=Length(min=3, max=3), required=True
     )
     max_from_origin = fields.Float(required=True)
+    max_from_sun = fields.Float(required=True)
 
     @post_load
     def to_domain(self, data, **kwargs) -> StockConfig:

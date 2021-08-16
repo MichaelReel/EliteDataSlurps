@@ -24,6 +24,7 @@ class StockConfig:
     acceptable_station_types: List[str]
     origin_coords: List[float]
     max_from_origin: float
+    max_from_sun: float
 
 
 @dataclass

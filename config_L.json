@@ -20,7 +20,8 @@
             "Bernal"
         ],
         "origin_coords": [0.0, 0.0, 0.0],
-        "max_from_origin": 300.0
+        "max_from_origin": 300.0,
+        "max_from_sun": 2000.0
     },
     "cmd_line": {
         "print_wait": 20,

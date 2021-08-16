@@ -68,6 +68,8 @@ class StockHandler:
             if (
                 station_type in self.config.acceptable_station_types
                 and dist_from_origin <= self.config.max_from_origin
+                and journal_dock.dist_from_star_ls is not None
+                and journal_dock.dist_from_star_ls <= self.config.max_from_sun
             ):
                 cost_snapshot = CostSnapshot(
                     system_name=system,

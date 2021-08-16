@@ -25,7 +25,8 @@
             "_not_FleetCarrier"
         ],
         "origin_coords": [0.0, 0.0, 0.0],
-        "max_from_origin": 500.0
+        "max_from_origin": 500.0,
+        "max_from_sun": 5000.0
     },
     "cmd_line": {
         "print_wait": 20,
